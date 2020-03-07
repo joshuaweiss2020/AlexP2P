@@ -1,0 +1,17 @@
+<div class="code">
+
+	<script src="all_scripts.js" type="text/javascript"></script>
+
+</div>
+
+<div class="code">
+ <script type="text/javascript">
+ 	//alert("start..")
+	//proxy = XmlRpc.getObject("http://106.13.113.252:9001/")
+	//alert(proxy.test('hello'))
+	proxy = XmlRpc.getObject("http://127.0.0.1:2001/RPC2")
+	c = proxy.getClient("DadMac")
+
+	document.write(c["dirName"])
+</script>
+</div>
