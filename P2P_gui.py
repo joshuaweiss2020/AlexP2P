@@ -160,7 +160,7 @@ class InfoTab():
 
 		self.infoList = tkinter.scrolledtext.ScrolledText(self.root.wnd,
 		                                                  fg='black', bg='lightgray', font=("黑体", 11), relief=GROOVE,
-		                                                  width=110)
+		                                                  width=108)
 
 		self.infoList.place(x=rowX, y=rowY - 2)
 		# self.infoList.grid(row=3,column=1,columnspan=3,sticky=W+E)
@@ -453,9 +453,17 @@ class DownloadTab(PTab):
 		rowX = self.lSpace
 
 		self.titleList = Listbox(self.tab,fg='black', bg='lightgray', font=("黑体", 11), relief=GROOVE,
-		                         width=128, height=25)
+		                         width=128, height=20)
 
 		self.titleList.place(x=rowX, y=rowY)
+
+		yscrollbar = Scrollbar(self.titleList, command=self.titleList .yview)
+		yscrollbar.place(x=self.root.shape[0] - 50 , y=rowY)
+		self.titleList.config(yscrollcommand=yscrollbar.set)
+
+		self.titleList.bind("<Double-Button-1>", self.fileChoosed)
+
+
 
 
 		# 显示标题###########
@@ -476,6 +484,8 @@ class DownloadTab(PTab):
 
 		#connClient("server")
 
+
+
 	def showFilelist(self, filelist):
 		col_num = 3
 		nowPath = ".."
@@ -485,6 +495,11 @@ class DownloadTab(PTab):
 			col_num += 1
 			col_data = rowShow(self.titleDef, self.col_len_l, fileInfo(filename, nowPath))
 			self.titleList.insert(col_num, col_data)
+
+	def fileChoosed(self,event):
+		w = event.widget
+		#print(dir(w))
+		print(w.get(w.curselection()))
 
 	def connClient(self, clientName):
 		filelist = self.root.myCmd.do_getClient(clientName)
