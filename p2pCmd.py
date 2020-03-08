@@ -11,7 +11,7 @@ from p2pClient import URL,MyClient
 import sys
 
 
-class UnhandledQuery(Fault): #远程无法抛异常，只能通过Fault的faultcode来处理，Fault被客户端作为异常处理
+class UnhandledQuery(Fault): # 远程无法抛异常，只能通过Fault的faultcode来处理，Fault被客户端作为异常处理
 	def __init__(self,message="Couldn't handle the query "):
 		super().__init__(UNHANDLED,message)
 
@@ -104,6 +104,7 @@ class MyCmd(Cmd):
 		print(clientName,":",c["absDir"],"@",c["dirName"],":")
 		for f in c["filelist"]:
 			print(f)
+		return c["filelist"]
 
 	def do_getCl(self,args):
 		cl = self.proxy.getClientList()
@@ -152,7 +153,6 @@ def gui_main(setupTab):
 
 	if not os.path.exists(clientName): # 如果不存在则创建目录
 		os.makedirs(clientName)
-
 
 	myClient = MyClient(setupTab)
 	t1 = Thread(target=myClient.clientLoop)
