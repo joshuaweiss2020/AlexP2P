@@ -8,7 +8,7 @@ import time
 from threading import Thread
 from os import listdir
 from myUtils import *
-from myClient import MyClient,URL
+from p2pClient import MyClient,URL
 
 import sys
 
@@ -57,6 +57,7 @@ def inside(dir,name):  #用于防止 /a/../b/c的攻击
 
 class RequestHandler(SimpleXMLRPCRequestHandler): 
 	rpc_paths = ('/RPC2',)
+
 	'''
 	def do_OPTIONS(self):           
 		self.send_response(200, "ok")       
@@ -72,22 +73,9 @@ class RequestHandler(SimpleXMLRPCRequestHandler):
 		self.end_headers()
 		print("in get: ",dir(self))
 	
-
+'''
 	def do_POST(self):
-		#print("peername:",self.request.getpeername())
-		self.send_response(200)
-		self.send_header('Access-Control-Allow-Origin', '*')
-		self.send_header('Content-type',    'text/html')
-		self.end_headers()
-		self.send_header('Access-Control-Allow-Origin', '*')
-		self.send_header('Content-type',    'text/html')
-		self.end_headers()
-		'''
-		#print("in post: ",type(self.request))
-		#print("in post dir: ",dir(self.request))
-
-
-	
+		SimpleXMLRPCRequestHandler.do_POST(self)
 
 class MyServer:
 
@@ -107,13 +95,17 @@ class MyServer:
 	def _start(self):
 		s = SimpleXMLRPCServer(("",self.port),requestHandler=RequestHandler,logRequests=False)
 		s.register_instance(self)
+		#h = s.get_request()
+		#x = h[1]
 		s.register_introspection_functions()
 		print("server start....")
+		self.server = s
 		s.serve_forever()
 
 	def updateClient(self,name,clientInfo): #客户端信息更新 
 			self.clients[name] = clientInfo
-			ilog(clientInfo["clientNameVal"]," 已连接.....",nowStr())
+			ilog(clientInfo["clientNameVal"], self.server.get_request()[1], " 已连接.....",nowStr())
+
 			'''
 			self.clients[name]["absDir"] = absDir
 			self.clients[name]["dirName"] = dirName
@@ -244,7 +236,8 @@ def main():
 	sleep(0.5)
 
 	#启动作为客户端的线程
-	c = MyClient(clientName,listdir(clientName),clientName)
+	# c = MyClient(clientName,listdir(clientName),clientName)
+	c = MyClient()
 	clientTread = Thread(target=c.clientLoop)
 	clientTread.setDaemon(True)
 	clientTread.start()

@@ -8,24 +8,32 @@ from os.path import join,isfile,abspath
 from tkinter import StringVar,IntVar
 #s = ServerProxy('http://106.13.113.252:9001')
 
-URL = "http://106.13.113.252:9001"
-#URL = "http://127.0.0.1:2001"
+#URL = "http://106.13.113.252:9001"
+URL = "http://127.0.0.1:2001"
 def mPrint(*args):
 	print(*args)
 
 class MyClient:
-	def __init__(self,setupTab):
 
-		self.clientName = setupTab.clientNameVal.get()
-		
+	def __init__(self, setupTab=None):
 		self.clientInfo = {}
-		self.clientInfo["macAddr"] = getMacAdr()
+		cmd = None
+		if not setupTab: #以server方式启动client
+			self.clientName = "server"
+			self.clientInfo["clientNameVal"] = "server"
+			self.clientInfo["downloadFolderVal"] = "server"
+			self.clientInfo["syncFolderVal"] = "server"
+			cmd = {"args":["server"]}
 
-		for attr in dir(setupTab):
-			if isinstance(getattr(setupTab,attr),StringVar) or isinstance(getattr(setupTab,attr),IntVar):
-				self.clientInfo[attr]=getattr(setupTab,attr).get()
+		else:
+			self.clientName = setupTab.clientNameVal.get()
 
-		
+			self.clientInfo["macAddr"] = getMacAdr()
+
+			for attr in dir(setupTab):
+				if isinstance(getattr(setupTab,attr),StringVar) or isinstance(getattr(setupTab,attr),IntVar):
+					self.clientInfo[attr]=getattr(setupTab,attr).get()
+
 		if not os.path.exists(self.clientInfo["downloadFolderVal"]): # 如果不存在则创建目录
 			os.makedirs(self.clientInfo["downloadFolderVal"])
 
