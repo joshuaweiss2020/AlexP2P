@@ -2,7 +2,7 @@ from xmlrpc.client import ServerProxy, Fault
 from cmd import Cmd
 from os import listdir
 from threading import Thread
-from time import sleep
+
 from os.path import join, isfile
 import os
 import myClient
