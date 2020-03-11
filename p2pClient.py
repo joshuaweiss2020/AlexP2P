@@ -48,11 +48,10 @@ class MyClient:
 
 		self.proxy = ServerProxy(URL)
 
-		self.updateClientInfo()
-
+		self.proxy.regClient(self.clientName, self.clientInfo)
 
 	def checkCmds(self):
-		code,cmd = self.proxy.getCmd(self.clientName)
+		code, cmd = self.proxy.getCmd(self.clientName)
 		#print(str(code),":",cmd)
 		if code ==1:
 			if cmd["cmdC"] == "sendFileToServer": #传输指定文件到服务器
