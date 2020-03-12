@@ -85,7 +85,7 @@ class MyCmd(Cmd):
 		sleep(4)
 		self.do_getClient(clientName)
 
-	def do_conn(self,host):
+	def do_conn(self, host):
 		if host.strip()=='':
 			self.do_getCl("")
 			return
@@ -96,6 +96,7 @@ class MyCmd(Cmd):
 			MyCmd.prompt = 'Alex_p2p@' + self.host + '>'
 		else:
 			print("远程客户端：{} 未注册到服务器".format(host))
+		return cl
 
 
 
@@ -106,10 +107,11 @@ class MyCmd(Cmd):
 			print(f)
 		return c["filelist"]
 
-	def do_getCl(self,args):
+	def do_getCl(self,args=None):
 		cl = self.proxy.getClientList()
 		for c in cl.keys():
 			print(c)
+		return cl
 
 
 	def do_getHost(self,args):

@@ -36,7 +36,7 @@ class Root():
 		self.buttonShape = (100, 30)
 		# self.buttonPad = ()
 		self.tabShape = (self.shape[0], self.shape[1] - self.buttonShape[1])
-		self.myClient, self.myCmd = None, None
+		self.myClient, self.myCmd, self.PTab = None, None, None
 
 
 
@@ -55,8 +55,12 @@ class Root():
 				traceback.print_exc()
 				return 0
 			self.PTab.info("连接成功，可以传输或同步文件")
-			# self.updateInfo()
-			# self.connClient("server")
+			#获取客户端列表
+			i = 0
+			clientList = self.myCmd.do_getCl()
+			downloadTab.show()
+			downloadTab.connClient["values"] = tuple(clientList.keys())
+			downloadTab.connClient.current(0)
 			return 1
 
 
@@ -404,7 +408,7 @@ class DownloadTab(PTab):
 		self.connClient = ttk.Combobox(self.tab, font=("黑体", 12),
 		                               textvariable=self.connClientVal, width=20)
 		self.connClient.place(x=rowX, y=rowY)
-		self.connClient["values"] = ("server", "dadmac", "officemac")
+		#self.connClient["values"] = ("server", "dadmac", "officemac")
 
 		rowX += 160
 		self.connClientPWD_l = Label(self.tab, text='连接密码:', fg='black', bg='lightgray', font=("黑体", 12))

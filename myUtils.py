@@ -1,6 +1,8 @@
 import time
 import uuid
 import os.path as path
+from xmlrpc.client import Fault
+from functools import wraps
 import os
 
 
@@ -19,6 +21,28 @@ def deb(fn):  # 用于调试的装饰器函数
 		print("function return:", o)
 
 	return debugPrint
+
+
+def rpcEx(fn): # 用于在 rpc的服务器端向远程客户端抛Fault异常的装饰器
+	@wraps(fn)
+	def raiseFault(*args, **kwargs):
+		try:
+			return fn(*args, **kwargs)
+		except Exception as e:
+			print("rpc 调用异常（服务器端）：", str(e))
+			raise Fault(0, str(e))
+	return raiseFault
+
+def catchRpcEx(fn) -> object: # 用于在rpc的客户端抓取Fault异常的装饰器
+	@wraps(fn)
+	def catchFault(*args, **kwargs):
+		try:
+			return fn(*args, **kwargs)
+		except Fault as f:
+			print("rpc 远程调用异常（客户端）：", str(f))
+		except Exception as e:
+			print("rpc 客户端本地调用异常：", str(e))
+	return catchFault
 
 
 def nowStr(fmt="%Y%m%d %H:%M:%S"):

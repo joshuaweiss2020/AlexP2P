@@ -1,5 +1,4 @@
-from xmlrpc.client import ServerProxy,Binary
-from os import listdir
+from xmlrpc.client import ServerProxy, Binary, Fault
 from myUtils import *
 import sys,time
 #import server 
@@ -8,13 +7,13 @@ from os.path import join,isfile,abspath
 from tkinter import StringVar,IntVar
 #s = ServerProxy('http://106.13.113.252:9001')
 
-#URL = "http://106.13.113.252:9001"
-URL = "http://127.0.0.1:2001"
+URL = "http://106.13.113.252:9001"
+#URL = "http://127.0.0.1:2001"
 def mPrint(*args):
 	print(*args)
 
 class MyClient:
-
+	@catchRpcEx
 	def __init__(self, setupTab=None):
 		self.clientInfo = {}
 		cmd = None
@@ -40,9 +39,9 @@ class MyClient:
 		if not os.path.exists(self.clientInfo["syncFolderVal"]): # 如果不存在则创建目录
 			os.makedirs(self.clientInfo["syncFolderVal"])
 
-		self.filelist = listdir(self.clientInfo["downloadFolderVal"])
+		self.filelist = os.listdir(self.clientInfo["downloadFolderVal"])
 
-		self.dirName = self.clientInfo["downloadFolderVal"] #当前文件夹默认为下载文件夹
+		self.dirName = self.clientInfo["downloadFolderVal"] # 当前文件夹默认为下载文件夹
 		
 		self.absDir = sys.path[0] 
 
@@ -50,6 +49,7 @@ class MyClient:
 
 		self.proxy.regClient(self.clientName, self.clientInfo)
 
+	@catchRpcEx
 	def checkCmds(self):
 		code, cmd = self.proxy.getCmd(self.clientName)
 		#print(str(code),":",cmd)
@@ -88,16 +88,16 @@ class MyClient:
 
 		return Binary(open(join(self.dirName,filename),'rb').read())
 
-	def updateClientInfo(self,cmd=None):
+	def updateClientInfo(self, cmd=None):
 		try:
 			if cmd:
 				dirName = cmd["args"][0]
-				filelist = listdir(dirName)
+				filelist = os.listdir(dirName)
 				self.dirName = dirName
 				self.filelist = filelist 
 			self.proxy.updateClient(self.clientName,self.clientInfo)
 		except FileNotFoundError as e:
-			self.proxy.sendInfo(self.clientName,cmd["fromW"],dirName + " dir cann't find! Still in " + self.dirName )
+			self.proxy.sendInfo(self.clientName, cmd["fromW"], dirName + " dir cann't find! Still in " + self.dirName )
 
 
 	def saveFileInClient(self,data,filename):
@@ -108,8 +108,9 @@ class MyClient:
 		print("client threading start....")
 		while True:
 			self.checkCmds()
-			#print(self.checkCmds())
+			# print(self.checkCmds())
 			time.sleep(3)
+
 
 def main():
 		if len(sys.argv)==3:
