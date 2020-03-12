@@ -54,7 +54,7 @@ def get_port(url):  # 从URL中提取port
     port = name.split(":", 1)[1]
 
 
-def inside(dir, name):  # 用于防止 /a/../b/c的攻击
+def inside(dir, name):  # 用于防止 /a/../b/c攻击
     dir = abspath(dir)
     name = abspath(name)
     return name.startswith(join(dir, ''))
