@@ -63,29 +63,15 @@ def inside(dir, name):  # 用于防止 /a/../b/c的攻击
 class RequestHandler(SimpleXMLRPCRequestHandler):
     rpc_paths = ('/RPC2',)
 
-    '''
-	def do_OPTIONS(self):           
-		self.send_response(200, "ok")       
-		self.send_header('Access-Control-Allow-Origin', '*')                
-		self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
-		self.send_header("Access-Control-Allow-Headers", "X-Requested-With")
-		print("in options")
-
-	def do_GET(self):
-		self.send_response(200)
-		self.send_header('Access-Control-Allow-Origin', '*')
-		self.send_header('Content-type',    'text/html')
-		self.end_headers()
-		print("in get: ",dir(self))
-	
-'''
 
     def do_POST(self):
-        SimpleXMLRPCRequestHandler.do_POST(self)
+        try:
+            SimpleXMLRPCRequestHandler.do_POST(self)
+        except Exception as e:
+            print("do_post exception:", e)
 
 
 class MyServer:
-
     def __init__(self, url, port, dirname, secret=PASSWORD):
         self.dirname = dirname
         self.url = url
@@ -126,7 +112,6 @@ class MyServer:
                 os.makedirs(join(name, clientInfo["downloadFolderVal"]))
             if not os.path.exists(join(name, clientInfo["syncFolderVal"])):  # 如果不存在则创建目录
                 os.makedirs(join(name, clientInfo["syncFolderVal"]))
-
             self.updateClient(name, clientInfo)
             ilog(clientInfo["clientNameVal"], self.server.get_request()[1], " 已连接.....", nowStr())
 
