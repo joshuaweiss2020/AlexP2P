@@ -39,7 +39,6 @@ class Root():
 		self.myClient, self.myCmd, self.PTab = None, None, None
 
 
-
 	def connServer(self):
 		setupTab = self.widgets.tabs[2]
 		downloadTab = self.widgets.tabs[0]
