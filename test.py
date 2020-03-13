@@ -20,6 +20,7 @@ from myUtils import *
 from xmlrpc.client import ServerProxy, Fault, Binary
 
 URL = "http://127.0.0.1:2001"
+URL = "http://106.13.113.252:9001"
 proxy = ServerProxy(URL)
 clientName = "server"
 clientInfo = {}
@@ -43,8 +44,22 @@ def t(proxy):
     print(proxy.getClientList())
 
 
-t(proxy)
+# t(proxy)
 # print()
 
-from tkinter import ttk
-help(ttk.Combobox)
+# from tkinter import ttk
+# help(ttk.Combobox)
+f = {"a": 1, "b": 2}
+for a in f:
+    if a == "b":
+        f["b"]=3
+
+print(f)
+
+class cc:
+    def f_cc(self):
+        print("fcc")
+
+a = cc()
+
+print(dir(a.f_cc))

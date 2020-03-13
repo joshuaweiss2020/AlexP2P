@@ -140,10 +140,11 @@ class MyServer:
 	@rpcEx
 	def getClientList(self):
 		# 检查并剔除超时未连接的客户端
-		for name in self.clients:
+		for name in self.clients.copy():
 			client = self.clients[name]
+			clientName = client["clientNameVal"]
 			if time.time() - client["stamp"] > 5 * 60:  # 5分钟
-				del self.clients[client["clientNameVal"]]
+				del self.clients[clientName]
 				ilog(client["clientNameVal"], " 连接超时，从清单清除.....", nowStr())
 		return self.clients
 

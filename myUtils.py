@@ -3,6 +3,7 @@ import uuid
 import os.path as path
 from xmlrpc.client import Fault
 from functools import wraps
+import traceback
 import os
 
 
@@ -29,7 +30,7 @@ def rpcEx(fn): # 用于在 rpc的服务器端向远程客户端抛Fault异常的
 		try:
 			return fn(*args, **kwargs)
 		except Exception as e:
-			print("rpc 调用异常（服务器端）：", str(e))
+			print(fn.__class__, ":", fn.__name__, "rpc 调用异常（服务器端）：", str(e))
 			raise Fault(0, str(e))
 	return raiseFault
 
@@ -39,9 +40,11 @@ def catchRpcEx(fn) -> object: # 用于在rpc的客户端抓取Fault异常的装�
 		try:
 			return fn(*args, **kwargs)
 		except Fault as f:
-			print("rpc 远程调用异常（客户端）：", str(f))
+			print(":", fn.__name__, " rpc 远程调用异常（客户端）：", str(f))
+			# traceback.print_exc()
 		except Exception as e:
-			print("rpc 客户端本地调用异常：", str(e))
+			print(":", fn.__name__,  "rpc 客户端本地调用异常：", str(e))
+			# traceback.print_exc()
 	return catchFault
 
 

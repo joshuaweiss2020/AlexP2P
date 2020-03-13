@@ -2,11 +2,12 @@ from xmlrpc.client import ServerProxy,Fault
 from cmd import Cmd
 from os import listdir
 from threading import Thread
+from multiprocessing import Process
 from time import sleep
 import os
 from os.path import join,isfile
 from p2pClient import URL,MyClient
-
+from myUtils import *
 #from P2P_gui import *
 import sys
 
@@ -85,6 +86,7 @@ class MyCmd(Cmd):
 		sleep(4)
 		self.do_getClient(clientName)
 
+	@catchRpcEx
 	def do_conn(self, host):
 		if host.strip()=='':
 			self.do_getCl("")
@@ -107,6 +109,7 @@ class MyCmd(Cmd):
 			print(f)
 		return c["filelist"]
 
+	@catchRpcEx
 	def do_getCl(self,args=None):
 		cl = self.proxy.getClientList()
 		for c in cl.keys():
@@ -137,6 +140,7 @@ def main():
 	c = MyClient(clientName,listdir(clientName),clientName)
 
 	t1 = Thread(target=c.clientLoop)
+	#t1 = Process(target=c.clientLoop(), name="client_p")
 	t1.setDaemon(True)
 	t1.start()
 	sleep(0.5)
@@ -150,15 +154,17 @@ def main():
 	#myCmd = MyCmd(clientName)
 	#myCmd.cmdloop()
 
+@catchRpcEx
 def gui_main(setupTab):
 	clientName = setupTab.clientNameVal.get()
-
 	if not os.path.exists(clientName): # 如果不存在则创建目录
 		os.makedirs(clientName)
 
 	myClient = MyClient(setupTab)
+	#t1 = Process(target=myClient.clientLoop(), name="client_p")
 	t1 = Thread(target=myClient.clientLoop)
 	t1.setDaemon(True)
+	#t1.daemon = True
 	t1.start()
 	sleep(0.5)
 	myCmd = MyCmd(clientName)
