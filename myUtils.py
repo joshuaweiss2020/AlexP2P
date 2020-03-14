@@ -7,6 +7,15 @@ import traceback
 import os
 
 
+class MyException(Exception):
+	def __init__(self, msg):
+		Exception.__init__(self, msg)
+		self.msg = msg
+	def __str__(self):
+		return "自定义异常：" + self.msg
+
+
+
 def deb(fn):  # 用于调试的装饰器函数
 	def debugPrint(*args, **kwargs):
 		print("function name:", fn.__name__, ", start debug:", nowStr(), 10 * ">")
@@ -47,6 +56,19 @@ def catchRpcEx(fn) -> object: # 用于在rpc的客户端抓取Fault异常的装�
 			# traceback.print_exc()
 	return catchFault
 
+def showEx(tab): # 用于在GUI中显示异常信息的装饰器
+	def decorator(fn):
+		@wraps(fn)
+		def showFault(*args, **kwargs):
+			try:
+				return fn(*args, **kwargs)
+			except Fault as f:
+				tab.info("远程调用异常: [", fn.__name__, "]:", str(f))
+				# traceback.print_exc()
+			except Exception as e:
+				tab.info("本地调用异常：[", fn.__name__, "]:", str(e))
+		return showFault
+	return decorator
 
 def nowStr(fmt="%Y%m%d %H:%M:%S"):
 	return time.strftime(fmt, time.localtime())

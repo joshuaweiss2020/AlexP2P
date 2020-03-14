@@ -75,16 +75,16 @@ class MyCmd(Cmd):
 	def do_test(self,arg,arg1='arg1'):
 		print("arg:",arg,"arg1:",arg1)
 			
-	def do_cd(self,arg):
-		#args = arg.split(" ")
-		#clientName,dirName = args[0],args[1] 
-		dirName = arg
-		clientName = self.host
+	def do_cd(self, dirName , fromW=None,toW=None,pw=None):
+
+		if not toW: toW = self.host
+		if not fromW: fromW = self.clientName
+
 		#print(self.clientName,clientName,dirName)
-		self.proxy.changeDir(self.clientName,clientName,dirName)
-		print("Start to change ",clientName," dir to ",dirName,"...")
+		self.proxy.changeDir(fromW, toW , dirName)
+		print("Start to change ", toW ," dir to ",dirName,"...")
 		sleep(4)
-		self.do_getClient(clientName)
+		return self.do_getClient(toW, pw)
 
 	@catchRpcEx
 	def do_conn(self, host):
@@ -102,12 +102,16 @@ class MyCmd(Cmd):
 
 
 
-	def do_getClient(self,clientName):
-		c = self.proxy.getClient(clientName)
-		print(clientName,":",c["absDir"],"@",c["dirName"],":")
-		for f in c["filelist"]:
-			print(f)
-		return c["filelist"]
+	def do_getClient(self,clientName,connPwd='000'):
+
+		client = self.proxy.getClient(clientName)
+		clientPassword = client["passwordVal"]
+		#print(c)
+
+		if clientPassword.strip() == connPwd.strip():
+			return client
+		else:
+			raise MyException("密码:{} 有误，无法连接{}".format(connPwd, clientName))
 
 	@catchRpcEx
 	def do_getCl(self,args=None):
@@ -162,13 +166,13 @@ def gui_main(setupTab):
 
 	myClient = MyClient(setupTab)
 	#t1 = Process(target=myClient.clientLoop(), name="client_p")
-	t1 = Thread(target=myClient.clientLoop)
+	t1 = Thread(target=myClient.clientLoop, name="client_thread")
 	t1.setDaemon(True)
 	#t1.daemon = True
 	t1.start()
 	sleep(0.5)
 	myCmd = MyCmd(clientName)
-	return myClient,myCmd
+	return myClient, myCmd
 
 
 if __name__ == '__main__':

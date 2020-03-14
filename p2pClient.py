@@ -22,6 +22,7 @@ class MyClient:
 			self.clientInfo["clientNameVal"] = "server"
 			self.clientInfo["downloadFolderVal"] = "server"
 			self.clientInfo["syncFolderVal"] = "server"
+			self.clientInfo["passwordVal"] = "server"
 			cmd = {"args":["server"]}
 
 		else:
@@ -40,6 +41,7 @@ class MyClient:
 			os.makedirs(self.clientInfo["syncFolderVal"])
 
 		self.filelist = os.listdir(self.clientInfo["downloadFolderVal"])
+		self.clientInfo["fileList"] = self.filelist
 
 		self.dirName = self.clientInfo["downloadFolderVal"] # 当前文件夹默认为下载文件夹
 		
@@ -94,7 +96,9 @@ class MyClient:
 				dirName = cmd["args"][0]
 				filelist = os.listdir(dirName)
 				self.dirName = dirName
-				self.filelist = filelist 
+				self.filelist = filelist
+				self.clientInfo["fileList"] = filelist
+				self.clientInfo["downloadFolderVal"] = dirName
 			self.proxy.updateClient(self.clientName,self.clientInfo)
 		except FileNotFoundError as e:
 			self.proxy.sendInfo(self.clientName, cmd["fromW"], dirName + " dir cann't find! Still in " + self.dirName )

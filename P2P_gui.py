@@ -17,7 +17,7 @@ import p2pCmd
 import socket
 import json
 import traceback
-
+from functools import wraps
 
 class Root():
 	def __init__(self, shape):  # shape为长*宽元组
@@ -48,7 +48,12 @@ class Root():
 			return 0
 		else:
 			try:
-				self.myClient, self.myCmd = p2pCmd.gui_main(setupTab)
+				if not self.myClient or not self.myCmd or clientName != setupTab.clientNameInit :
+					self.myClient, self.myCmd = p2pCmd.gui_main(setupTab)
+				else:
+					self.myClient.clientName = clientName
+					self.myClient.updateClientInfo()
+
 			except Exception as e:
 				self.PTab.info("连接远程设备出错，请检查配置信息 出错信息:" + str(e))
 				traceback.print_exc()
@@ -59,7 +64,7 @@ class Root():
 			clientList = self.myCmd.do_getCl()
 			downloadTab.show()
 			downloadTab.connClient["values"] = tuple(clientList.keys())
-			downloadTab.connClient.current(0)
+			downloadTab.connClient.current(1)
 			return 1
 
 
@@ -128,8 +133,26 @@ class PTab():
 		self.fill()
 		self.readInfo()
 
+
 	def info(self, msg):
 		self.root.infoList.insert(1.0, nowStr() + " " + msg + "...\n")
+
+	def showEx(self):  # 用于在GUI中显示异常信息的装饰器
+		def decorator(fn):
+			@wraps(fn)
+			def showFault(*args, **kwargs):
+				try:
+					return fn(*args, **kwargs)
+				except Fault as f:
+					self.info("远程调用异常: ["+fn.__name__+"]:"+str(f))
+				# traceback.print_exc()
+				except Exception as e:
+					self.info("本地调用异常：["+fn.__name__+"]:" +str(e))
+
+			return showFault
+
+		return decorator
+
 
 	def fill(self):
 		pass
@@ -142,6 +165,7 @@ class PTab():
 
 	def connClient(self, clientName):
 		pass
+
 
 
 class InfoTab():
@@ -188,8 +212,9 @@ class SetupTab(PTab):
 		hostname = hostname.replace(".", "_")
 		hostname = hostname.replace("-", "_")
 		hostname = hostname.replace(" ", "_")
-
-		self.clientNameVal.set(hostname[:10])
+		if not self.clientNameVal.get():
+			self.clientNameVal.set(hostname[:10])
+			self.clientNameInit = hostname[:10]
 		helpX = self.lSpace + 58 * self.lSpace
 
 		rowY = self.top + self.hSpace
@@ -206,7 +231,8 @@ class SetupTab(PTab):
 
 		# 设定下载文件夹
 		self.downloadFolderVal = StringVar()
-		self.downloadFolderVal.set(sys.path[0] + os.sep + self.clientNameVal.get())
+		if not self.downloadFolderVal.get():
+			self.downloadFolderVal.set(sys.path[0] + os.sep + self.clientNameVal.get())
 
 		rowY = rowY + self.hSpace * 3
 		self.downloadFolder_l = Label(self.tab, text='下载文件夹:', fg='black', bg='lightgray', font=("黑体", 12))
@@ -226,7 +252,8 @@ class SetupTab(PTab):
 
 		# 设定同步文件夹
 		self.syncFolderVal = StringVar()
-		self.syncFolderVal.set(sys.path[0] + os.sep + "sync_" + self.clientNameVal.get())
+		if not self.syncFolderVal.get():
+			self.syncFolderVal.set(sys.path[0] + os.sep + "sync_" + self.clientNameVal.get())
 
 		rowY = rowY + self.hSpace * 3
 
@@ -247,8 +274,8 @@ class SetupTab(PTab):
 
 		# 设定访问密码
 		rowY = rowY + self.hSpace * 3
-		self.passwordVal = IntVar()
-		self.passwordVal.set("20130628")
+		self.passwordVal = StringVar()
+		if not self.passwordVal.get(): self.passwordVal.set("000000")
 
 		self.password_l = Label(self.tab, text='访问密码:', fg='black', bg='lightgray', font=("黑体", 12))
 		self.password_l.place(x=self.lSpace, y=rowY)
@@ -381,7 +408,11 @@ class SetupTab(PTab):
 			for attr in dir(self):
 				if isinstance(getattr(self, attr), StringVar) or isinstance(getattr(self, attr), IntVar):
 					getattr(self, attr).set(data[attr])
+
+			self.clientNameInit = data["clientNameVal"]
+
 			self.proxyCheck()
+
 		else:
 			self.info("初次使用，需要设定相关参数")
 
@@ -421,7 +452,8 @@ class DownloadTab(PTab):
 
 		rowX += 90
 		self.connClientBtn = Button(self.tab, fg='black', bg='lightgray', font=("黑体", 12), relief=GROOVE, bd=2,
-		                            text="连接", bitmap='gray12', width=40, compound=LEFT, anchor=W, padx=5)
+		                            text="连接1", bitmap='gray12', width=40, compound=LEFT, anchor=W, padx=5,
+		                            command=self.connectClient)
 		self.connClientBtn.place(x=rowX, y=rowY)
 
 		rowX += 120
@@ -443,12 +475,14 @@ class DownloadTab(PTab):
 
 		rowX += 450
 		self.remoteDirEnterBtn = Button(self.tab, fg='black', bg='lightgray', font=("黑体", 12), relief=GROOVE, bd=2,
-		                                text="进入目录", bitmap='gray12', width=40, compound=LEFT, anchor=W, padx=5)
+		                                text="进入目录", bitmap='gray12', width=40, compound=LEFT, anchor=W, padx=5,
+		                                command=lambda:self.enterRemoteFolder(self.remoteDirVal.get()))
 		self.remoteDirEnterBtn.place(x=rowX, y=rowY)
 
 		rowX += 100
 		self.remoteDirReturnBtn = Button(self.tab, fg='black', bg='lightgray', font=("黑体", 12), relief=GROOVE, bd=2,
-		                                 text="返回上层", bitmap='gray12', width=40, compound=LEFT, anchor=W, padx=5)
+		                                 text="返回上层", bitmap='gray12', width=40, compound=LEFT, anchor=W, padx=5,
+		                                 command=lambda: self.enterRemoteFolder(".."))
 		self.remoteDirReturnBtn.place(x=rowX, y=rowY)
 
 		# 显示文件列表###########
@@ -482,7 +516,7 @@ class DownloadTab(PTab):
 		col_num += 1
 		self.titleList.insert(col_num, lenUtf(self.title) * "-" + "\n")
 
-		self.showFilelist(os.listdir("../AlexP2P"))
+		#self.showFilelist(os.listdir("../AlexP2P"))
 
 
 		#connClient("server")
@@ -492,7 +526,7 @@ class DownloadTab(PTab):
 	def showFilelist(self, filelist):
 		col_num = 3
 		nowPath = ".."
-
+		self.titleList.delete(0, END)
 		for filename in filelist:
 			if filename.startswith("."): continue
 			col_num += 1
@@ -504,11 +538,22 @@ class DownloadTab(PTab):
 		#print(dir(w))
 		print(w.get(w.curselection()))
 
-	def connClient(self, clientName):
-		filelist = self.root.myCmd.do_getClient(clientName)
-		self.showFilelist(filelist)
+	#@self.showEx()
+	def connectClient(self):
 
+		clientName = self.connClientVal.get()
+		client = self.root.myCmd.do_getClient(clientName, self.connClientPWDVal.get())
 
+		self.showFilelist(client["fileList"])
+		self.remoteDirVal.set(client["downloadFolderVal"])
+
+	def enterRemoteFolder(self,dirName):
+		if dirName == ".." :
+			dirName = self.remoteDirVal.get() + os.sep + ".." + os.sep
+			self.remoteDirVal.set(dirName)
+		client = self.root.myCmd.do_cd(dirName, self.root.myClient.clientName,self.connClientVal.get(),
+		                               self.connClientPWDVal.get())
+		self.showFilelist(client["fileList"])
 
 
 class SyncTab(PTab):
