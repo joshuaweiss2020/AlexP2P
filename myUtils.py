@@ -95,6 +95,19 @@ def lenUtf(s=''):
 	return int((l_utf - l) / 2 + l)
 
 
+def makeFileList(clientPath): # 生成文件信息列表
+	fileList = []
+	fileNameList = os.listdir(clientPath)
+	for name in fileNameList:
+		info = fileInfo(name, clientPath)
+		if info:
+			fileList.append(info)
+
+	return fileList
+
+
+
+
 
 
 
@@ -102,19 +115,19 @@ def fileInfo(filename, dirname=""):
 	info = {}
 	info["name"] = filename
 	info["path"] = path.join(dirname, filename)
-	info["exists"] = path.exists(info["name"])
+	info["exists"] = path.exists(info["path"])
 
 	if info["exists"]:
-		info["isdir"] = path.isdir(info["name"])
-		info["ext"] = path.splitext(info["name"])[1]
+		info["isdir"] = path.isdir(info["path"])
+		info["ext"] = path.splitext(info["path"])[1]
 		if info["isdir"] or info["ext"] == '':
 			info["ext"] = "目录"
 		#else:
 		#	info["ext"] = path.splitext(info["path"])[1]
 
-		info["size"] = str(path.getsize(info["name"]) / 1000) + "Kb"
-		info["mtime"] = timeStr(path.getmtime(info["name"]))
-		info["ctime"] = timeStr(path.getctime(info["name"]))
+		info["size"] = str(path.getsize(info["path"]) / 1000) + "Kb"
+		info["mtime"] = timeStr(path.getmtime(info["path"]))
+		info["ctime"] = timeStr(path.getctime(info["path"]))
 		info["state"] = "状态比较"
 
 		return info

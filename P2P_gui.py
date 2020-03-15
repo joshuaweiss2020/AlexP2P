@@ -523,14 +523,15 @@ class DownloadTab(PTab):
 
 
 
-	def showFilelist(self, filelist):
+	def showFilelist(self, fileList):
 		col_num = 3
 		nowPath = ".."
 		self.titleList.delete(0, END)
-		for filename in filelist:
+		for info in fileList:
+			filename = info["name"]
 			if filename.startswith("."): continue
 			col_num += 1
-			col_data = rowShow(self.titleDef, self.col_len_l, fileInfo(filename, nowPath))
+			col_data = rowShow(self.titleDef, self.col_len_l, info)
 			self.titleList.insert(col_num, col_data)
 
 	def fileChoosed(self,event):
@@ -549,7 +550,7 @@ class DownloadTab(PTab):
 
 	def enterRemoteFolder(self,dirName):
 		if dirName == ".." :
-			dirName = self.remoteDirVal.get() + os.sep + ".." + os.sep
+			dirName = self.remoteDirVal.get() + ".." + os.sep
 			self.remoteDirVal.set(dirName)
 		client = self.root.myCmd.do_cd(dirName, self.root.myClient.clientName,self.connClientVal.get(),
 		                               self.connClientPWDVal.get())

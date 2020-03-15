@@ -12,9 +12,9 @@ def mPrint(*args):
 	print(*args)
 
 class MyClient:
-	def __init__(self,clientName,filelist,dirName):
+	def __init__(self,clientName,fileList,dirName):
 		self.clientName = clientName
-		self.filelist = filelist
+		self.fileList = fileList
 		self.dirName = dirName
 		self.absDir = sys.path[0] 
 		self.proxy = ServerProxy(URL)
@@ -64,10 +64,10 @@ class MyClient:
 		try:
 			if cmd:
 				dirName = cmd["args"][0]
-				filelist = listdir(dirName)
+				fileList = listdir(dirName)
 				self.dirName = dirName
-				self.filelist = filelist 
-			self.proxy.updateClient(self.clientName,self.absDir,self.dirName,self.filelist)
+				self.fileList = fileList
+			self.proxy.updateClient(self.clientName,self.absDir,self.dirName,self.fileList)
 		except FileNotFoundError as e:
 			self.proxy.sendInfo(self.clientName,cmd["fromW"],dirName + " dir cann't find! Still in " + self.dirName )
 
@@ -89,7 +89,7 @@ def main():
 		clientName= sys.argv[1]
 		#if url:URL = url
 		c = MyClient(clientName,listdir(clientName),clientName)
-		c.proxy.updateClient(clientName,c.absDir,c.dirName,c.filelist)
+		c.proxy.updateClient(clientName,c.absDir,c.dirName,c.fileList)
 		print("client start....")
 		c.clientLoop()
 

@@ -100,7 +100,7 @@ class MyCmd(Cmd):
 	def do_getClient(self,clientName):
 		c = self.proxy.getClient(clientName)
 		print(clientName,":",c["absDir"],"@",c["dirName"],":")
-		for f in c["filelist"]:
+		for f in c["fileList"]:
 			print(f)
 
 	def do_getCl(self,args):

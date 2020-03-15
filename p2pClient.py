@@ -40,8 +40,8 @@ class MyClient:
 		if not os.path.exists(self.clientInfo["syncFolderVal"]): # 如果不存在则创建目录
 			os.makedirs(self.clientInfo["syncFolderVal"])
 
-		self.filelist = os.listdir(self.clientInfo["downloadFolderVal"])
-		self.clientInfo["fileList"] = self.filelist
+		self.fileList = makeFileList(self.clientInfo["downloadFolderVal"])
+		self.clientInfo["fileList"] = self.fileList
 
 		self.dirName = self.clientInfo["downloadFolderVal"] # 当前文件夹默认为下载文件夹
 		
@@ -94,12 +94,12 @@ class MyClient:
 		try:
 			if cmd:
 				dirName = cmd["args"][0]
-				filelist = os.listdir(dirName)
+				fileList = makeFileList(dirName)
 				self.dirName = dirName
-				self.filelist = filelist
-				self.clientInfo["fileList"] = filelist
+				self.fileList = fileList
+				self.clientInfo["fileList"] = fileList
 				self.clientInfo["downloadFolderVal"] = dirName
-			self.proxy.updateClient(self.clientName,self.clientInfo)
+			self.proxy.updateClient(self.clientName, self.clientInfo)
 		except FileNotFoundError as e:
 			self.proxy.sendInfo(self.clientName, cmd["fromW"], dirName + " dir cann't find! Still in " + self.dirName )
 
@@ -122,7 +122,7 @@ def main():
 		clientName= sys.argv[1]
 		#if url:URL = url
 		c = MyClient(clientName,listdir(clientName),clientName)
-		c.proxy.updateClient(clientName,c.absDir,c.dirName,c.filelist)
+		c.proxy.updateClient(clientName,c.absDir,c.dirName,c.fileList)
 		print("client start....")
 		c.clientLoop()
 
