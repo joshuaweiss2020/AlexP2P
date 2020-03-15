@@ -209,7 +209,9 @@ class MyServer:
 		return Binary(open(name, 'rb').read())
 
 	def query(self, query, clientName):
-		pathStr = self.clients[clientName]["serverDownload"]
+		#pathStr = self.clients[clientName]["serverDownload"]
+		pathStr = join("userData", clientName)
+		pathStr = join(pathStr, "download")
 		pathStr = join(pathStr, query)
 		return Binary(open(pathStr, 'rb').read())
 

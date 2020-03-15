@@ -34,6 +34,7 @@ class MyCmd(Cmd):
 
 	def do_fetch(self,client,pathStr,filename):
 		downloadDir = client.clientInfo["downloadFolderVal"]
+		fromW = client.clientName
 		#args = arg.split(" ")
 		#fromW,filename = args[0],args[1]
 		try:

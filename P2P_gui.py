@@ -528,7 +528,7 @@ class DownloadTab(PTab):
 	def showFilelist(self, fileList):
 		col_num = 3
 		nowPath = ".."
-		self.fileList = fileList
+		self.fileList = []
 		self.titleList.delete(0, END)
 		for info in fileList:
 			filename = info["name"]
@@ -536,6 +536,7 @@ class DownloadTab(PTab):
 			col_num += 1
 			col_data = rowShow(self.titleDef, self.col_len_l, info)
 			self.titleList.insert(col_num, col_data)
+			self.fileList.append(info)
 
 	def fileChoosed(self,event):
 		w = event.widget

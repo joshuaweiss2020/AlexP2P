@@ -63,7 +63,7 @@ class MyClient:
 					pathStr = cmd["args"][0]
 					filename = cmd["args"][1]
 					data = self.getFileData(join(pathStr, filename))
-					self.proxy.sendFileToServer(data, filename)
+					self.proxy.sendFileToServer(data, filename, self.clientName)
 					mPrint("sendFileToServer successfully:",filename)
 					self.proxy.noticeToGetFile(self.clientName,cmd["fromW"],filename)
 					mPrint("noticeToGetFile successfully:",cmd["fromW"],",",filename)
@@ -74,7 +74,7 @@ class MyClient:
 		
 			elif cmd["cmdC"] == "getFileFromServer": #去服务器取文件
 				filename = cmd["args"][0]
-				data = self.proxy.query(filename)
+				data = self.proxy.query(filename, self.clientName)
 				self.saveFileInClient(data, filename)
 				#self.proxy.getFileFromServer(filename,self.dirName)
 				mPrint("download successfully file ",filename)
@@ -101,7 +101,7 @@ class MyClient:
 				self.dirName = dirName
 				self.fileList = fileList
 				self.clientInfo["fileList"] = fileList
-				self.clientInfo["downloadFolderVal"] = dirName
+				# self.clientInfo["downloadFolderVal"] = dirName
 			self.proxy.updateClient(self.clientName, self.clientInfo)
 		except FileNotFoundError as e:
 			self.proxy.sendInfo(self.clientName, cmd["fromW"], dirName + " dir cann't find! Still in " + self.dirName )
