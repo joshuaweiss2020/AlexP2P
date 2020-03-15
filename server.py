@@ -211,15 +211,6 @@ class MyServer:
 		pathStr = self.clients[clientName]["serverDownload"]
 		pathStr = join(pathStr, query)
 		return Binary(open(pathStr, 'rb').read())
-''' 
-		try:
-			return self._handle(query)
-		except UnhandledQuery:
-			raise
-		# history = history + [self.url + str(self.port)]
-		# return self._broadcast(query,history)
-		# return FAIL,EMPTY
-'''
 
 	def fetch(self, query, secret, dirname):
 		if dirname == None:
