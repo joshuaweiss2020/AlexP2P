@@ -43,6 +43,8 @@ class MyClient:
 		self.fileList = makeFileList(self.clientInfo["downloadFolderVal"])
 		self.clientInfo["fileList"] = self.fileList
 
+		self.clientInfo["sep"] = os.sep
+
 		self.dirName = self.clientInfo["downloadFolderVal"] # 当前文件夹默认为下载文件夹
 		
 		self.absDir = sys.path[0] 
@@ -58,9 +60,10 @@ class MyClient:
 		if code ==1:
 			if cmd["cmdC"] == "sendFileToServer": #传输指定文件到服务器
 				try:
-					filename = cmd["args"][0]
-					data = self.getFileData(filename)
-					self.proxy.sendFileToServer(data,filename)
+					pathStr = cmd["args"][0]
+					filename = cmd["args"][1]
+					data = self.getFileData(join(pathStr, filename))
+					self.proxy.sendFileToServer(data, filename)
 					mPrint("sendFileToServer successfully:",filename)
 					self.proxy.noticeToGetFile(self.clientName,cmd["fromW"],filename)
 					mPrint("noticeToGetFile successfully:",cmd["fromW"],",",filename)
@@ -72,7 +75,7 @@ class MyClient:
 			elif cmd["cmdC"] == "getFileFromServer": #去服务器取文件
 				filename = cmd["args"][0]
 				data = self.proxy.query(filename)
-				self.saveFileInClient(data,filename)
+				self.saveFileInClient(data, filename)
 				#self.proxy.getFileFromServer(filename,self.dirName)
 				mPrint("download successfully file ",filename)
 			elif cmd["cmdC"] == "changeDir":
@@ -105,7 +108,7 @@ class MyClient:
 
 
 	def saveFileInClient(self,data,filename):
-		with open(join(self.dirName,filename),'wb') as f:
+		with open(join(self.clientInfo["downloadFolderVal"], filename), 'wb') as f:
 			f.write(data.data)
 
 	def clientLoop(self):

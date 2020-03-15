@@ -105,6 +105,16 @@ def makeFileList(clientPath): # 生成文件信息列表
 
 	return fileList
 
+def upFolderPath(pathStr,sep=os.sep): #生成到上一级目录的路径
+	if not pathStr.endswith(sep):
+		pathStr += sep
+	i = pathStr.rindex(sep, 0, len(pathStr)-1)
+	return pathStr[0:i+1]
+
+
+
+
+
 
 
 
@@ -114,6 +124,7 @@ def makeFileList(clientPath): # 生成文件信息列表
 def fileInfo(filename, dirname=""):
 	info = {}
 	info["name"] = filename
+	info["dirName"] = dirname
 	info["path"] = path.join(dirname, filename)
 	info["exists"] = path.exists(info["path"])
 
@@ -174,9 +185,12 @@ def test(a, b, d=None):
 
 
 if __name__ == '__main__':
+	''' 
 	test("1", "2")
 	print(getMacAdr())
 	print(lenUtf("大中肝因aaaa"))
 	print(fileInfo("1ss.py"))
 # for filename in os.listdir("AlexP2P"):
 #	print(fileInfo(filename))
+	'''
+	print(upFolderPath("c:\\usr\\folder\\seq","\\"))

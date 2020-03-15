@@ -11,6 +11,7 @@ from tkinter import *
 # from tkinter.ttk import *
 import tkinter.filedialog
 import tkinter.scrolledtext
+import tkinter.messagebox as messagebox
 from tkinter import ttk
 from myUtils import *
 import p2pCmd
@@ -36,13 +37,14 @@ class Root():
 		self.buttonShape = (100, 30)
 		# self.buttonPad = ()
 		self.tabShape = (self.shape[0], self.shape[1] - self.buttonShape[1])
-		self.myClient, self.myCmd, self.PTab = None, None, None
+		self.myClient, self.myCmd, self.PTab ,self.clientName = None, None, None,None
 
 
 	def connServer(self):
 		setupTab = self.widgets.tabs[2]
 		downloadTab = self.widgets.tabs[0]
 		clientName = setupTab.clientNameVal.get()
+		self.clientName = clientName
 		if not clientName or clientName == "":
 			self.PTab.info("终端名称为空，无法连接远程设备")
 			return 0
@@ -526,6 +528,7 @@ class DownloadTab(PTab):
 	def showFilelist(self, fileList):
 		col_num = 3
 		nowPath = ".."
+		self.fileList = fileList
 		self.titleList.delete(0, END)
 		for info in fileList:
 			filename = info["name"]
@@ -536,8 +539,16 @@ class DownloadTab(PTab):
 
 	def fileChoosed(self,event):
 		w = event.widget
-		#print(dir(w))
-		print(w.get(w.curselection()))
+		line = w.curselection()
+		info = self.fileList[line[0]]
+		yesno = messagebox.askyesno('提示', '要下载文件{}吗'.format(info["name"]))
+		if yesno:
+			self.root.myCmd.do_fetch(self.root.myClient, info["dirName"], info["name"])
+
+
+
+
+
 
 	#@self.showEx()
 	def connectClient(self):
@@ -548,10 +559,22 @@ class DownloadTab(PTab):
 		self.showFilelist(client["fileList"])
 		self.remoteDirVal.set(client["downloadFolderVal"])
 
-	def enterRemoteFolder(self,dirName):
+	def enterRemoteFolder(self, dirName):
+		sep = os.sep
+		if self.remoteDirVal.get().find("\\") > 0: sep = "\\"
 		if dirName == ".." :
-			dirName = self.remoteDirVal.get() + ".." + os.sep
+			#dirName = self.remoteDirVal.get() + ".." + os.sep
+
+			if self.remoteDirVal.get().count(sep) <2:
+				self.info("当前已是根目录")
+				return
+			dirName = upFolderPath(self.remoteDirVal.get(), sep)
 			self.remoteDirVal.set(dirName)
+		elif not dirName.endswith(sep):
+			dirName += sep
+
+		self.remoteDirVal.set(dirName)
+
 		client = self.root.myCmd.do_cd(dirName, self.root.myClient.clientName,self.connClientVal.get(),
 		                               self.connClientPWDVal.get())
 		self.showFilelist(client["fileList"])

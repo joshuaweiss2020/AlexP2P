@@ -32,14 +32,15 @@ class MyCmd(Cmd):
 		MyCmd.prompt = 'Alex_p2p@' + self.host + '>' 
 
 
-	def do_fetch(self,arg):
-		args = arg.split(" ")
-		fromW,filename = args[0],args[1] 
+	def do_fetch(self,client,pathStr,filename):
+		downloadDir = client.clientInfo["downloadFolderVal"]
+		#args = arg.split(" ")
+		#fromW,filename = args[0],args[1]
 		try:
-			if  not isfile(join(self.clientName,filename)):
-				self.proxy.getFileFromOther(fromW,self.clientName,filename)
+			if  not isfile(join(downloadDir, filename)):
+				self.proxy.getFileFromOther(fromW,self.clientName,pathStr,filename)
 				print("From ",fromW,":",filename," start getting file.....")
-				self.proxy.setSessionState(self.clientName,"fileFetch","0") 
+				self.proxy.setSessionState(self.clientName, "fileFetch", "0")
 				i=0
 				while not isfile(join(self.clientName,filename)):
 					

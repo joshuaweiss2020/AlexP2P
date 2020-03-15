@@ -109,12 +109,14 @@ class MyServer:
 	@rpcEx
 	def regClient(self, name, clientInfo):  # 注册客户端
 		if name not in self.clients.keys():
-				if not os.path.exists(name):  # 如果不存在则创建目录
-					os.makedirs(name)
-				if not os.path.exists(join(name, clientInfo["downloadFolderVal"])):  # 如果不存在则创建目录
-					os.makedirs(join(name, clientInfo["downloadFolderVal"]))
-				if not os.path.exists(join(name, clientInfo["syncFolderVal"])):  # 如果不存在则创建目录
-					os.makedirs(join(name, clientInfo["syncFolderVal"]))
+				pathStr = join("userData", name)
+				if not os.path.exists(pathStr):  # 如果不存在则创建目录
+					os.makedirs(pathStr)
+					os.makedirs(join(pathStr, "download"))
+					os.makedirs(join(pathStr, "sync"))
+
+				clientInfo["serverDownload"] = join(pathStr, "download")
+				clientInfo["serverSync"] = join(pathStr, "sync")
 				self.updateClient(name, clientInfo)
 				ilog(clientInfo["clientNameVal"], " 已注册.....", nowStr())
 				return 1
@@ -175,13 +177,14 @@ class MyServer:
 	def getSessionState(self, clientName, item):
 		return self.sessionState[clientName][item]
 
-	def getFileFromOther(self, fromW, byW, filename):  # 从另一台电脑上获取文件
-		cmd = MyCmd(byW, fromW, 'sendFileToServer', [filename], 'noticeToGetFile')
+	def getFileFromOther(self, fromW, byW, pathStr,filename):  # 从另一台电脑上获取文件
+		cmd = MyCmd(byW, fromW, 'sendFileToServer', [pathStr, filename], 'noticeToGetFile')
 		self.sendCmd(cmd)
 		return 0
 
-	def sendFileToServer(self, data, filename):  # 向服务器发送文件
-		f = open(join('server', filename), 'wb')
+	def sendFileToServer(self, data, filename, clientName=None):  # 向服务器发送文件
+		pathStr = self.clients[clientName]["serverDownload"]
+		f = open(join(pathStr, filename), 'wb')
 		f.write(data.data)
 		f.close()
 		self.trans_ok = 1
@@ -204,7 +207,11 @@ class MyServer:
 		if not inside(dir, name): raise AccessDenied
 		return Binary(open(name, 'rb').read())
 
-	def query(self, query, history=[]):
+	def query(self, query, clientName):
+		pathStr = self.clients[clientName]["serverDownload"]
+		pathStr = join(pathStr, query)
+		return Binary(open(pathStr, 'rb').read())
+''' 
 		try:
 			return self._handle(query)
 		except UnhandledQuery:
@@ -212,6 +219,7 @@ class MyServer:
 		# history = history + [self.url + str(self.port)]
 		# return self._broadcast(query,history)
 		# return FAIL,EMPTY
+'''
 
 	def fetch(self, query, secret, dirname):
 		if dirname == None:

@@ -11,13 +11,18 @@ for k in a:
 titleDef = [("名称", 15, "name"), ("类型", 5, "ext"), ("大小", 5, "size"), ("修改时间", 5, "mtime"),
             ("创建时间", 5, "ctime"), ("本地状态", 5, "stat")]
 
+p = "c:/aa/dd/"
+
+i=p.rindex("/",0,len(p)-1)
+print(p[0:i+1])
+
 #for k,v in titleDef:
 #    print(k[1],v)
 
-
-
+''' 
 from myUtils import *
 from xmlrpc.client import ServerProxy, Fault, Binary
+from myUtils import MyException
 
 URL = "http://127.0.0.1:2001"
 URL = "http://106.13.113.252:9001"
@@ -29,7 +34,11 @@ clientInfo["downloadFolderVal"] = "DadMac"
 clientInfo["syncFolderVal"] = "DadMac"
 clientInfo["macAddr"] = getMacAdr()
 try:
-    proxy.regClient("DadMac", clientInfo)
+    #proxy.regClient("DadMac", clientInfo)
+    c = proxy.getClient("DavidWeiss")
+    print(c)
+    raise MyException("test error")
+
    # proxy.test()
 except Fault as f:
     print("F:", f)
@@ -63,3 +72,4 @@ class cc:
 a = cc()
 
 print(dir(a.f_cc))
+'''
