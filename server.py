@@ -115,8 +115,7 @@ class MyServer:
 					os.makedirs(join(pathStr, "download"))
 					os.makedirs(join(pathStr, "sync"))
 
-				clientInfo["serverDownload"] = join(pathStr, "download")
-				clientInfo["serverSync"] = join(pathStr, "sync")
+
 				self.updateClient(name, clientInfo)
 				ilog(clientInfo["clientNameVal"], " 已注册.....", nowStr())
 				return 1
@@ -183,7 +182,9 @@ class MyServer:
 		return 0
 
 	def sendFileToServer(self, data, filename, clientName=None):  # 向服务器发送文件
-		pathStr = self.clients[clientName]["serverDownload"]
+		pathStr = join("userData", clientName)
+		pathStr = join(pathStr, "download")
+
 		f = open(join(pathStr, filename), 'wb')
 		f.write(data.data)
 		f.close()
