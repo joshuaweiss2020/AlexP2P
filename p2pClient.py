@@ -8,10 +8,10 @@ from tkinter import StringVar, IntVar
 
 # s = ServerProxy('http://106.13.113.252:9001')
 
-#URL = "http://106.13.113.252:9001"
+URL = "http://106.13.113.252:9001"
 
 
-URL = "http://127.0.0.1:2001"
+#URL = "http://127.0.0.1:2001"
 def mPrint(*args):
     print(*args)
 
