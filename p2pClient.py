@@ -8,10 +8,10 @@ from tkinter import StringVar, IntVar
 
 # s = ServerProxy('http://106.13.113.252:9001')
 
-URL = "http://106.13.113.252:9001"
+#URL = "http://106.13.113.252:9001"
 
 
-# URL = "http://127.0.0.1:2001"
+URL = "http://127.0.0.1:2001"
 def mPrint(*args):
     print(*args)
 
@@ -24,7 +24,7 @@ class MyClient:
         if not setupTab:  # 以server方式启动client
             self.clientName = "server"
             self.clientInfo["clientNameVal"] = "server"
-            self.clientInfo["downloadFolderVal"] = "c:\\AlexP2P\\server\\"
+            self.clientInfo["downloadFolderVal"] = "D:\\AlexP2P\\server\\"
             self.clientInfo["syncFolderVal"] = "server"
             self.clientInfo["passwordVal"] = "server"
             cmd = {"args": ["server"]}
@@ -67,7 +67,7 @@ class MyClient:
                     pathStr = cmd["args"][0]
                     filename = cmd["args"][1]
                     data = self.getFileData(join(pathStr, filename))
-                    self.proxy.sendFileToServer(data, filename, self.clientName)
+                    self.proxy.sendFileToServer(data, filename, cmd["fromW"])
                     mPrint("sendFileToServer successfully:", filename)
                     self.proxy.noticeToGetFile(self.clientName, cmd["fromW"], filename)
                     mPrint("noticeToGetFile successfully:", cmd["fromW"], ",", filename)
@@ -127,7 +127,7 @@ def main():
         URL = sys.argv[2]
     clientName = sys.argv[1]
     # if url:URL = url
-    c = MyClient(clientName, listdir(clientName), clientName)
+    c = MyClient(clientName, os.listdir(clientName), clientName)
     c.proxy.updateClient(clientName, c.absDir, c.dirName, c.fileList)
     print("client start....")
     c.clientLoop()
