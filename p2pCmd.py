@@ -113,7 +113,7 @@ class MyCmd(Cmd):
 		if clientPassword.strip() == connPwd.strip():
 			return client
 		else:
-			raise MyException("密码:{} 有误，无法连接{}".format(connPwd, clientName))
+			raise MyException("密码:{} 有误，无法连接{},{}".format(connPwd, clientName,clientPassword.strip()))
 
 	@catchRpcEx
 	def do_getCl(self,args=None):
