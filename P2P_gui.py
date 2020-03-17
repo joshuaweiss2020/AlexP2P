@@ -37,7 +37,7 @@ class Root():
 		self.buttonShape = (100, 30)
 		# self.buttonPad = ()
 		self.tabShape = (self.shape[0], self.shape[1] - self.buttonShape[1])
-		self.myClient, self.myCmd, self.PTab ,self.clientName = None, None, None,None
+		self.myClient, self.myCmd, self.PTab , self.clientName , self.progressBar= None, None, None, None, None
 
 
 	def connServer(self):
@@ -537,10 +537,10 @@ class DownloadTab(PTab):
 		rowX += self.lSpace * 10
 		self.progressBar = ttk.Progressbar(self.tab, variable=self.progressBarVal, length='400', mode='determinate')
 		self.progressBar.place(x=rowX, y=rowY)
+		self.root.progressBar = self.progressBar
 
 
-
-		self.progressBarVal.set(60)
+		self.progressBarVal.set(0)
 
 
 

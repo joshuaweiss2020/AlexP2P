@@ -107,11 +107,11 @@ class MyServer:
 
 		s.serve_forever()
 
-	def updateClient(self,name,absDir,dirName,filelist): #客户端信息更新 
+	def updateClient(self,name,absDir,dirName,fileList): #客户端信息更新
 			self.clients[name] = {}
 			self.clients[name]["absDir"] = absDir
 			self.clients[name]["dirName"] = dirName
-			self.clients[name]["filelist"] = filelist
+			self.clients[name]["fileList"] = fileList
 			return 0
 
 	def changeDir(self,fromW,SendW,dirName): #改变client当前目录
