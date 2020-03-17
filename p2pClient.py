@@ -24,7 +24,7 @@ class MyClient:
         if not setupTab:  # 以server方式启动client
             self.clientName = "server"
             self.clientInfo["clientNameVal"] = "server"
-            self.clientInfo["downloadFolderVal"] = "D:\\AlexP2P\\server\\"
+            self.clientInfo["downloadFolderVal"] = "C:\\AlexP2P\\server\\"
             self.clientInfo["syncFolderVal"] = "server"
             self.clientInfo["passwordVal"] = "server"
             cmd = {"args": ["server"]}
