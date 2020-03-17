@@ -32,9 +32,9 @@ class MyCmd(Cmd):
 		MyCmd.prompt = 'Alex_p2p@' + self.host + '>' 
 
 
-	def do_fetch(self,client,pathStr,filename):
+	def do_fetch(self,client,fromW,pathStr,filename):
 		downloadDir = client.clientInfo["downloadFolderVal"]
-		fromW = client.clientName
+		#fromW = client.clientName
 		#args = arg.split(" ")
 		#fromW,filename = args[0],args[1]
 		try:
