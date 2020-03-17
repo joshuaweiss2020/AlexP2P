@@ -544,7 +544,7 @@ class DownloadTab(PTab):
 		info = self.fileList[line[0]]
 		yesno = messagebox.askyesno('提示', '要下载文件{}吗'.format(info["name"]))
 		if yesno:
-			self.root.myCmd.do_fetch(self.root.myClient, info["dirName"], info["name"])
+			self.root.myCmd.do_fetch(self.root.myClient, self.connClientVal.get(), info["dirName"], info["name"])
 
 
 
