@@ -5,6 +5,7 @@ from threading import Thread
 from multiprocessing import Process
 from time import sleep
 import os
+import re
 from os.path import join,isfile
 from p2pClient import URL,MyClient
 from myUtils import *
@@ -30,7 +31,7 @@ class MyCmd(Cmd):
 		self.proxy = ServerProxy(URL)  #连接自己启动的服务器
 		self.host = clientName #已连接的对象默认为自己
 		MyCmd.prompt = 'Alex_p2p@' + self.host + '>' 
-
+		self.root = None
 
 	def do_fetch(self,client,fromW,pathStr,filename):
 		downloadDir = client.clientInfo["downloadFolderVal"]
@@ -40,7 +41,7 @@ class MyCmd(Cmd):
 		try:
 			if  not isfile(join(downloadDir, filename)):
 				self.proxy.getFileFromOther(fromW,self.clientName,pathStr,filename)
-				print("From ",fromW,":",filename," start getting file.....")
+				self.mPrint("From ",fromW,":",filename," start getting file.....")
 				self.proxy.setSessionState(self.clientName, "fileFetch", "0")
 				i=0
 				while not isfile(join(self.clientName,filename)):
@@ -52,39 +53,38 @@ class MyCmd(Cmd):
 					sleep(1)
 					i+=1
 					if i>20:
-						print("time out")
+						self.mPrint("time out")
 						return
-				print("From ",fromW,":",filename," checked successfully")
+				self.mPrint("From ",fromW,":",filename," checked successfully")
 			else:
-				print(filename," is existed!")
+				self.mPrint(downloadDir, " ", filename ," 在下载目录中已存在!")
 
 		except Fault as f:
-			if f.faultCode != UNHANDLED: raise
-			#print(f.faultCode)
-			print("Couldn't find file:",arg)
+			#self.mPrint(f.faultCode)
+			self.mPrint("Couldn't find file:",filename)
 		#finally:
-		#	print("fail")
+		#	self.mPrint("fail")
 
 	def do_get(self,arg):
 		filename = arg
 		if self.host == self.clientName:
-			print("use conn to set host firstly..")
+			self.mPrint("use conn to set host firstly..")
 		else:
 			self.do_fetch(self.host + " " + filename)
 
 
 
 	def do_test(self,arg,arg1='arg1'):
-		print("arg:",arg,"arg1:",arg1)
+		self.mPrint("arg:",arg,"arg1:",arg1)
 			
 	def do_cd(self, dirName , fromW=None,toW=None,pw=None):
 
 		if not toW: toW = self.host
 		if not fromW: fromW = self.clientName
 
-		#print(self.clientName,clientName,dirName)
+		#self.mPrint(self.clientName,clientName,dirName)
 		self.proxy.changeDir(fromW, toW , dirName)
-		print("Start to change ", toW ," dir to ",dirName,"...")
+		self.mPrint("Start to change ", toW ," dir to ",dirName,"...")
 		sleep(4)
 		return self.do_getClient(toW, pw)
 
@@ -96,10 +96,10 @@ class MyCmd(Cmd):
 		cl = self.proxy.getClientList()
 		if host in cl.keys():
 			self.host = host
-			print("已连接远程终端： " ,self.host)
+			self.mPrint("已连接远程终端： " ,self.host)
 			MyCmd.prompt = 'Alex_p2p@' + self.host + '>'
 		else:
-			print("远程客户端：{} 未注册到服务器".format(host))
+			self.mPrint("远程客户端：{} 未注册到服务器".format(host))
 		return cl
 
 
@@ -108,7 +108,7 @@ class MyCmd(Cmd):
 
 		client = self.proxy.getClient(clientName)
 		clientPassword = client["passwordVal"]
-		#print(c)
+		#self.mPrint(c)
 
 		if clientPassword.strip() == connPwd.strip():
 			return client
@@ -130,10 +130,19 @@ class MyCmd(Cmd):
 	do_dir = do_getHost
 
 	def do_exit(self,arg):
-		print()
+		self.mPrint()
 		sys.exit()
 
 	do_EOF = do_exit
+
+
+	def mPrint(self, *args):
+		msg = re.sub(r"\(|\)|,|'", '', str(args))
+		if self.root:
+			self.root.infoList.insert(1.0, nowStr() + " " + msg + "...\n")
+			print(*args)
+		else:
+			print(*args)
 
 def main():
 	if len(sys.argv)==3:

@@ -16,6 +16,19 @@ p = "c:/aa/dd/"
 i=p.rindex("/",0,len(p)-1)
 print(p[0:i+1])
 
+import re
+def f(*args):
+    msg = re.sub(r"\(|\)|,|'", '', str(args))
+    print(msg)
+    msg = str(args).replace("(", "")
+    msg = str(msg).replace(")", "")
+    msg = str(msg).replace(",", " ")
+    msg = str(msg).replace("'", " ")
+
+    print(msg)
+
+f("dd","ff")
+
 #for k,v in titleDef:
 #    print(k[1],v)
 

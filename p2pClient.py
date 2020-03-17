@@ -3,6 +3,7 @@ from myUtils import *
 import sys, time
 # import server
 import os
+import re
 from os.path import join, isfile, abspath
 from tkinter import StringVar, IntVar
 
@@ -12,8 +13,7 @@ URL = "http://106.13.113.252:9001"
 
 
 #URL = "http://127.0.0.1:2001"
-def mPrint(*args):
-    print(*args)
+
 
 
 class MyClient:
@@ -28,6 +28,7 @@ class MyClient:
             self.clientInfo["syncFolderVal"] = "server"
             self.clientInfo["passwordVal"] = "server"
             cmd = {"args": ["server"]}
+            self.root = None
 
         else:
             self.clientName = setupTab.clientNameVal.get()
@@ -68,11 +69,11 @@ class MyClient:
                     filename = cmd["args"][1]
                     data = self.getFileData(join(pathStr, filename))
                     self.proxy.sendFileToServer(data, filename, cmd["fromW"])
-                    mPrint("sendFileToServer successfully:", filename)
+                    self.mPrint("sendFileToServer successfully:", filename)
                     self.proxy.noticeToGetFile(self.clientName, cmd["fromW"], filename)
-                    mPrint("noticeToGetFile successfully:", cmd["fromW"], ",", filename)
+                    self.mPrint("noticeToGetFile successfully:", cmd["fromW"], ",", filename)
                 except FileNotFoundError as e:
-                    mPrint(cmd["fromW"], "file:" + filename + " cann't find!")
+                    self.mPrint(cmd["fromW"], "file:" + filename + " cann't find!")
                     self.proxy.sendInfo(self.clientName, cmd["fromW"], "file:" + filename + " cann't find!")
                     self.proxy.setSessionState(cmd["fromW"], "fileFetch", "fail")
 
@@ -81,16 +82,16 @@ class MyClient:
                 data = self.proxy.query(filename, self.clientName)
                 self.saveFileInClient(data, filename)
                 # self.proxy.getFileFromServer(filename,self.dirName)
-                mPrint("download successfully file ", filename)
+                self.mPrint("文件{} 下载成功！ 存放于{} ".format(filename, self.clientInfo["downloadFolderVal"]))
             elif cmd["cmdC"] == "changeDir":
                 # self.dirName = cmd["args"][0]
                 self.updateClientInfo(cmd)
-                mPrint("changeDir successfully ,dir:", self.dirName)
+                self.mPrint("changeDir successfully ,dir:", self.dirName)
             elif cmd["cmdC"] == "info":
                 info = cmd["args"][0]
-                mPrint("Info From ", cmd["fromW"], ":", info)
+                self.mPrint("Info From ", cmd["fromW"], ":", info)
             else:
-                mPrint(cmd)
+                self.mPrint(cmd)
         return "checking cmds " + time.strftime("%Y%m%d %H:%M:%S", time.localtime())
 
     def getFileData(self, filename):
@@ -121,6 +122,13 @@ class MyClient:
             # print(self.checkCmds())
             time.sleep(3)
 
+    def mPrint(self, *args):
+        msg = re.sub(r"\(|\)|,|'", '', str(args))
+        if self.root:
+            self.root.infoList.insert(1.0, nowStr() + " " + msg + "...\n")
+            print(*args)
+        else:
+            print(*args)
 
 def main():
     if len(sys.argv) == 3:

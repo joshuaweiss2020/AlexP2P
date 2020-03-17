@@ -52,6 +52,8 @@ class Root():
 			try:
 				if not self.myClient or not self.myCmd or clientName != setupTab.clientNameInit :
 					self.myClient, self.myCmd = p2pCmd.gui_main(setupTab)
+					self.myClient.root = self
+					self.myCmd.root = self
 				else:
 					self.myClient.clientName = clientName
 					self.myClient.updateClientInfo()
@@ -518,10 +520,32 @@ class DownloadTab(PTab):
 		col_num += 1
 		self.titleList.insert(col_num, lenUtf(self.title) * "-" + "\n")
 
-		#self.showFilelist(os.listdir("../AlexP2P"))
+
+		# 显示进度条
+		rowX = self.lSpace
+		rowY += self.hSpace * 34
+
+		self.progressBarVal = DoubleVar()
+
+		style = ttk.Style()
+		style.configure("style.Label", foreground="black", background="lightgray",font=("黑体", 12))
+		#
+
+		self.progressBar_l  = ttk.Label(self.tab, text='执行进度:', style='style.Label')
+		self.progressBar_l.place(x=rowX, y=rowY)
+
+		rowX += self.lSpace * 10
+		self.progressBar = ttk.Progressbar(self.tab, variable=self.progressBarVal, length='400', mode='determinate')
+		self.progressBar.place(x=rowX, y=rowY)
 
 
-		#connClient("server")
+
+		self.progressBarVal.set(60)
+
+
+
+
+
 
 
 
@@ -542,9 +566,14 @@ class DownloadTab(PTab):
 		w = event.widget
 		line = w.curselection()
 		info = self.fileList[line[0]]
-		yesno = messagebox.askyesno('提示', '要下载文件{}吗'.format(info["name"]))
-		if yesno:
-			self.root.myCmd.do_fetch(self.root.myClient, self.connClientVal.get(), info["dirName"], info["name"])
+
+		if info["isdir"]: 		# 处理目录
+			self.remoteDirVal.set(info["path"])
+			self.enterRemoteFolder(info["path"])
+		else:	 # 处理文件下载
+			yesno = messagebox.askyesno('提示', '要下载文件{}吗'.format(info["name"]))
+			if yesno:
+				self.root.myCmd.do_fetch(self.root.myClient, self.connClientVal.get(), info["dirName"], info["name"])
 
 
 
