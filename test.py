@@ -77,6 +77,17 @@ def btntest(t):
     p.stop()
 f = tkFont.Font(family='黑体',size=-12)
 print(f.metrics())
+
+
+from myUtils import *
+
+print(nowStr())
+i = 0.01
+while i < 3:
+    i+=0.01
+    time.sleep(0.01)
+print(nowStr())
+
 #print(tkFont.families())
 #wnd.mainloop()
 

@@ -112,6 +112,16 @@ def upFolderPath(pathStr,sep=os.sep): #生成到上一级目录的路径
 	return pathStr[0:i+1]
 
 
+def setProgressBar(bar, sec, loc): #设置进度条，sec为运行秒数，loc会终点位置
+	i = 1
+	interval = 0.025
+	print(nowStr())
+	while i <= int(sec/interval):
+		i += 1
+		bar.step(interval*loc/sec)
+		time.sleep(interval)
+		bar.update()
+	print(nowStr())
 
 
 

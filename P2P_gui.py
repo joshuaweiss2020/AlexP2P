@@ -30,19 +30,31 @@ class Root():
 		alignstr = '%dx%d+%d+%d' % (
 			shape[0], shape[1], (screenwidth - shape[0]) / 2, (screenheight - shape[1]) / 2)  # 屏幕居中
 		self.wnd.geometry(alignstr)
-
-		# self.wnd.geometry(str(shape[0]) + "x" + str(shape[1]) + "+100+30")
 		self.wnd.resizable(width=False, height=False)
+		self.notebook = ttk.Notebook(self.wnd, width=self.shape[0], height=self.shape[1])
+		self.notebook.pack()
+		self.notebook.bind("<<NotebookTabChanged>>", self.tabChoosed)
+
+
 		self.widgets = Widgets(self)
 		self.buttonShape = (100, 30)
 		# self.buttonPad = ()
-		self.tabShape = (self.shape[0], self.shape[1] - self.buttonShape[1])
+		self.tabShape = (self.shape[0], self.shape[1]) #- self.buttonShape[1])
 		self.myClient, self.myCmd, self.PTab , self.clientName , self.progressBar= None, None, None, None, None
+
+	def tabChoosed(self,*args):
+		tabId = self.notebook.select()
+		index = self.notebook.index(tabId)
+		self.widgets.tabs[index].show()
+		print(self.widgets.tabs[index].name)
+		#print(self.widgets.tabs[index].tab.place(x=0,y=0))
+
 
 
 	def connServer(self):
-		setupTab = self.widgets.tabs[2]
-		downloadTab = self.widgets.tabs[0]
+		setupTab = self.widgets.tabs[0]
+		downloadTab = self.widgets.tabs[1]
+		print(downloadTab.name)
 		clientName = setupTab.clientNameVal.get()
 		self.clientName = clientName
 		if not clientName or clientName == "":
@@ -66,9 +78,13 @@ class Root():
 			#获取客户端列表
 			i = 0
 			clientList = self.myCmd.do_getCl()
+
 			downloadTab.show()
 			downloadTab.connClient["values"] = tuple(clientList.keys())
 			downloadTab.connClient.current(1)
+
+			self.notebook.select(1)
+
 			return 1
 
 
@@ -114,10 +130,12 @@ class PTab():
 		self.root = root
 		self.shape = root.tabShape
 		self.order = root.widgets.names[name]
-		self.tab = Frame(self.root.wnd, width=root.tabShape[0], height=root.tabShape[1] - 30, bd=2, relief=GROOVE,
+		self.tab = Frame(self.root.notebook, width=root.shape[0], height=root.shape[1], bd=2, relief=FLAT,
 		                 bg="lightgray")
+
 		self.root.PTab = self
 		self.root.widgets.tabs.append(self)
+		self.root.notebook.add(self.tab, text=self.name)
 
 		self.lSpace = 10  # 距左边界的距离
 		self.top = 0  # 顶部起始位置
@@ -127,11 +145,12 @@ class PTab():
 
 
 	def show(self):
-		for pTab in self.root.widgets.tabs:
-			pTab.tab.place_forget()
+
+		# for pTab in self.root.widgets.tabs:
+		# 	pTab.tab.place_forget()
 
 
-		self.tab.place(relx=0, rely=self.root.buttonShape[1] / self.root.shape[1])
+		#self.tab.place(relx=0, rely=0) # self.root.buttonShape[1] / self.root.shape[1])
 		# self.top = int(self.tab.place_info()["y"])
 
 		self.fill()
@@ -542,7 +561,10 @@ class DownloadTab(PTab):
 
 		self.progressBarVal.set(0)
 
+		clientList = self.root.myCmd.do_getCl()
 
+		self.connClient["values"] = tuple(clientList.keys())
+		self.connClient.current(1)
 
 
 
@@ -550,7 +572,7 @@ class DownloadTab(PTab):
 
 
 	def showFilelist(self, fileList):
-		col_num = 3
+		col_num = 1
 		nowPath = ".."
 		self.fileList = []
 		self.titleList.delete(3, END)
@@ -565,7 +587,10 @@ class DownloadTab(PTab):
 	def fileChoosed(self,event):
 		w = event.widget
 		line = w.curselection()
-		info = self.fileList[line[0]]
+		if line[0]<2:
+			self.info("选择错误")
+			return
+		info = self.fileList[line[0]-2]
 		print(w.bbox(line))
 		print(w.winfo_width())
 		print(w.winfo_reqwidth())
@@ -644,13 +669,14 @@ class SyncTab(PTab):
 
 
 r = Root((800, 600))
-for name in r.widgets.names:
-	PButton(r, name)
+# for name in r.widgets.names:
+# 	PButton(r, name)
 
 InfoTab(r)
+SetupTab(r)
 DownloadTab(r)
 SyncTab(r)
-SetupTab(r)
+
 # x = Tk()
 #
 #
@@ -662,8 +688,12 @@ SetupTab(r)
 # w.add(s2, text="设置")
 # w.add(s3, text="下载")
 # w.add(s1,text="同步")
+#a=r.notebook.tabs()[0]
+#r.notebook.select(a)
+print()
+#r.widgets.tabs[0].show()
 
-r.widgets.buttons[0].choosed()
+#r.widgets.buttons[0].choosed()
 
 # tab = PTab(r,"传输")
 # tab = PTab(r,"同步")
