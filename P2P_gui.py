@@ -493,8 +493,8 @@ class DownloadTab(PTab):
 		rowY += self.hSpace * 6
 		rowX = self.lSpace
 
-		self.titleList = Listbox(self.tab,fg='black', bg='lightgray', font=("黑体", 11), relief=GROOVE,
-		                         width=128, height=20)
+		self.titleList = Listbox(self.tab,fg='black', bg='lightgray', font=("黑体", -10), relief=GROOVE,
+		                         width=140, height=20, activestyle='dotbox')
 
 		self.titleList.place(x=rowX, y=rowY)
 
@@ -553,7 +553,7 @@ class DownloadTab(PTab):
 		col_num = 3
 		nowPath = ".."
 		self.fileList = []
-		self.titleList.delete(0, END)
+		self.titleList.delete(3, END)
 		for info in fileList:
 			filename = info["name"]
 			if filename.startswith("."): continue
@@ -566,7 +566,9 @@ class DownloadTab(PTab):
 		w = event.widget
 		line = w.curselection()
 		info = self.fileList[line[0]]
-
+		print(w.bbox(line))
+		print(w.winfo_width())
+		print(w.winfo_reqwidth())
 		if info["isdir"]: 		# 处理目录
 			self.remoteDirVal.set(info["path"])
 			self.enterRemoteFolder(info["path"])
@@ -649,6 +651,17 @@ InfoTab(r)
 DownloadTab(r)
 SyncTab(r)
 SetupTab(r)
+# x = Tk()
+#
+#
+# w = ttk.Notebook(x, width=700,height=450)
+# r.wnd = w
+# w.place(x=0,y=0)
+# s2 = Frame(w)
+# s3 = Frame(w)
+# w.add(s2, text="设置")
+# w.add(s3, text="下载")
+# w.add(s1,text="同步")
 
 r.widgets.buttons[0].choosed()
 
@@ -658,4 +671,5 @@ r.widgets.buttons[0].choosed()
 # print(btn1.button.place_info()["x"])
 # print(r.wnd.winfo_screenwidth())
 r.wnd.mainloop()
+# x.mainloop()
 # print(help(Button))

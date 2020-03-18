@@ -29,6 +29,73 @@ def f(*args):
 
 f("dd","ff")
 
+
+from tkinter import ttk
+from tkinter import *
+import time
+import tkinter.font as tkFont
+wnd = Tk()
+shape = (800, 600)
+wnd.title("Alex P2P 文件传送器")
+screenwidth = wnd.winfo_screenwidth()
+screenheight = wnd.winfo_screenheight()
+alignstr = '%dx%d+%d+%d' % (
+    shape[0], shape[1], (screenwidth - shape[0]) / 2, (screenheight - shape[1]) / 2)  # 屏幕居中
+wnd.geometry(alignstr)
+
+
+pVal = DoubleVar()
+
+style = ttk.Style()
+style.configure("style.Label", foreground="black", background="lightgray", font=("黑体", -10))
+#
+
+progressBar_l = ttk.Label(wnd, text='执行进度:', style='style.Label')
+progressBar_l.place(x=100, y=100)
+
+p= ttk.Progressbar(wnd, variable=pVal, length='400', mode='determinate', maximum=100)
+p.place(x=100, y=300)
+
+btn = Button(wnd, text="选择...", font=("黑体", 9),
+                                 command=lambda: btntest(1), relief=GROOVE)
+
+btn.place(x=500, y=300)
+
+
+def btntest(t):
+
+    pVal.set(0)
+    i=1
+    while i<=5:
+        p.step(20)
+        # pVal.set(i*5)
+        p.update()
+        time.sleep(1)
+        print(i)
+        i+=1
+
+    p.stop()
+f = tkFont.Font(family='黑体',size=-12)
+print(f.metrics())
+#print(tkFont.families())
+#wnd.mainloop()
+
+#p.step(5)
+#p.step(10)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #for k,v in titleDef:
 #    print(k[1],v)
 

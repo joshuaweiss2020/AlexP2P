@@ -85,19 +85,12 @@ class MyCmd(Cmd):
 		#self.mPrint(self.clientName,clientName,dirName)
 		self.proxy.changeDir(fromW, toW , dirName)
 		self.mPrint("Start to change ", toW ," dir to ",dirName,"...")
-		i=0
-		'''
-		while i <= 4:
-			i+= 1
-			self.root.progressBarVal.set(i*25)
-			sleep(1)
-		self.root.progressBarVal.set(100)
-		'''
-		#self.root.progressBar.start(50)
-		# print(int(self.root.progressBar["value"]))
-		# if int(self.root.progressBar["value"]) >=100:
-		#self.root.progressBar.stop()
-		sleep(4)
+		i=1
+		while i <= 400:
+			i += 1
+			self.root.progressBar.step(0.25)
+			sleep(0.01)
+			self.root.progressBar.update()
 
 		return self.do_getClient(toW, pw)
 
