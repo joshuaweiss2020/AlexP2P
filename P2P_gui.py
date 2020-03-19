@@ -599,7 +599,8 @@ class DownloadTab(PTab):
 			filename = info["name"]
 			if filename.startswith("."): continue
 			col_num += 1
-			col_data = rowShow(self.titleDef, self.col_len_l, info)
+			col_data = rowShow(self.titleDef, self.col_len_l, info ,
+							   self.root.myClient.clientInfo["downloadFolderVal"])
 			self.titleList.insert(col_num, col_data)
 			self.fileList.append(info)
 
@@ -611,8 +612,7 @@ class DownloadTab(PTab):
 			return
 		info = self.fileList[line[0]-2]
 		print(w.bbox(line))
-		print(w.winfo_width())
-		print(w.winfo_reqwidth())
+
 		if info["isdir"]: 		# 处理目录
 			self.remoteDirVal.set(info["path"])
 			self.enterRemoteFolder(info["path"])

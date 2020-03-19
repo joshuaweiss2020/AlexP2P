@@ -148,12 +148,29 @@ def fileInfo(filename, dirname=""):
 
 		info["size"] = str(path.getsize(info["path"]) / 1000) + "Kb"
 		info["mtime"] = timeStr(path.getmtime(info["path"]))
+		info["mtime_int"] = path.getmtime(info["path"])
+
 		info["ctime"] = timeStr(path.getctime(info["path"]))
+
+
 		info["state"] = "状态比较"
+
 
 		return info
 	else:
 		return None
+
+
+def compareFile(mtime_int, filePath): # 比较文件 mtime_int为远程文件最新修改时间 filePath为本地文件路径
+	if not path.exists(filePath):
+		return "尚未下载", 0 , None
+	else:
+		mtime_int_local = path.getmtime(filePath)
+		if mtime_int_local >= mtime_int:
+			return "已有最新", 1 , timeStr(mtime_int_local)
+		else:
+			return "已有旧版", 2 , timeStr(mtime_int_local)
+
 
 def rowTitle(titleDef):
 	''' 显示文件列表标题 titleDef为列表，元素为元组(中文名，两边宽度，变量名) '''
@@ -169,9 +186,12 @@ def rowTitle(titleDef):
 		col_len_l.append(col_len)
 	return title + "\n", col_len_l
 
-def rowShow(titleDef, col_len_l, info):
+def rowShow(titleDef, col_len_l, info, localDir=None):
 	""" 显示文件列表的每行内容 元素为元组(中文名，两边宽度，变量名) """
 	if not info: return "未取到数据" + "\n"
+	if localDir:
+		info["state"] = compareFile(info["mtime_int"], path.join(localDir, info["name"]))
+
 	col_num = 0
 	col_data = ""
 
