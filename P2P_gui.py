@@ -31,7 +31,7 @@ class Root():
 			shape[0], shape[1], (screenwidth - shape[0]) / 2, (screenheight - shape[1]) / 2)  # 屏幕居中
 		self.wnd.geometry(alignstr)
 		self.wnd.resizable(width=False, height=False)
-		self.notebook = ttk.Notebook(self.wnd, width=self.shape[0], height=self.shape[1])
+		self.notebook = ttk.Notebook(self.wnd, width=self.shape[0], height=self.shape[1], style="basic.TNotebook", )
 		self.notebook.pack()
 		self.notebook.bind("<<NotebookTabChanged>>", self.tabChoosed)
 
@@ -42,12 +42,26 @@ class Root():
 		self.tabShape = (self.shape[0], self.shape[1]) #- self.buttonShape[1])
 		self.myClient, self.myCmd, self.PTab , self.clientName , self.progressBar= None, None, None, None, None
 
+		self.style = ttk.Style()
+		self.initStyles()
+
 	def tabChoosed(self,*args):
 		tabId = self.notebook.select()
 		index = self.notebook.index(tabId)
 		self.widgets.tabs[index].show()
-		print(self.widgets.tabs[index].name)
-		#print(self.widgets.tabs[index].tab.place(x=0,y=0))
+
+
+	def initStyles(self):
+		self.font_label = 12
+		self.font_text = 12
+		font_label = ("黑体", 0-self.font_label)
+		font_text = ("黑体", 0-self.font_text)
+
+		self.style.configure("basic.TLabel", foreground="black", background="lightgray", font=font_label)
+		self.style.configure("basic.TButton", foreground="black", background="lightgray", relief=GROOVE,font=font_label)
+
+		self.style.configure("basic.TEntry", foreground="black", background="lightgray", relief=GROOVE, font=font_text)
+		self.style.configure("basic.TCombobox", foreground="black", background="lightgray", relief=GROOVE, font=font_text)
 
 
 
@@ -86,6 +100,9 @@ class Root():
 			self.notebook.select(1)
 
 			return 1
+
+
+
 
 
 class Widgets():  # Widgets= PButton+PTab
@@ -130,7 +147,7 @@ class PTab():
 		self.root = root
 		self.shape = root.tabShape
 		self.order = root.widgets.names[name]
-		self.tab = Frame(self.root.notebook, width=root.shape[0], height=root.shape[1], bd=2, relief=FLAT,
+		self.tab = Frame(self.root.notebook, width=root.shape[0], height=root.shape[1]-30, bd=2, relief=FLAT,
 		                 bg="lightgray")
 
 		self.root.PTab = self
@@ -198,25 +215,29 @@ class InfoTab():
 		self.fill()
 
 	def fill(self):
-		rowY = self.root.shape[1] - 30
+
 		rowX = 0
+		rowY = self.root.shape[1] - 80
+		self.infoFrame = ttk.LabelFrame(self.root.wnd , width=self.root.shape[0] ,text='状态信息', height=40)
 
-		self.infoVar = StringVar()
-		self.info_l = Label(self.root.wnd, text='状态信息:', fg='black', bg='lightgray', font=("黑体", 12),
-		                    width=100, height=30, relief=GROOVE, bitmap="info", compound=LEFT, anchor=W, padx=10)
-		self.info_l.place(x=rowX, y=rowY)
-		# self.info_l.grid(row=3,column=0,sticky=W)
-		rowX += int(self.info_l.cget("width"))
+		self.infoList = tkinter.scrolledtext.ScrolledText(self.infoFrame,
+		                                                  fg='black', bg='lightgray', font=("黑体", -10), relief=GROOVE,
+		                                                  width=154, height=3)
 
-		self.infoList = tkinter.scrolledtext.ScrolledText(self.root.wnd,
-		                                                  fg='black', bg='lightgray', font=("黑体", 11), relief=GROOVE,
-		                                                  width=108)
-
-		self.infoList.place(x=rowX, y=rowY - 2)
-		# self.infoList.grid(row=3,column=1,columnspan=3,sticky=W+E)
 		self.root.infoList = self.infoList
 
 		self.root.infoList.insert(1.0, nowStr() + " 欢迎使用Alex P2P 文件传送器\n")
+
+		# h = self.infoList.winfo_reqwidth()
+		# print("h",h)
+		# h = self.root.infoList.winfo_width()
+		# print("h", h)
+
+		# self.infoFrame.configure(height=h)
+		self.infoFrame.place(x=0,y=rowY)
+		self.infoList.pack()
+
+
 
 
 
@@ -242,14 +263,14 @@ class SetupTab(PTab):
 
 		rowY = self.top + self.hSpace
 
-		self.clientName_l = Label(self.tab, text='终端名称:', fg='black', bg='lightgray', font=("黑体", 12))
+		self.clientName_l = ttk.Label(self.tab, text='终端名称:', style="basic.TLabel")
 		self.clientName_l.place(x=self.lSpace, y=rowY)
 
-		self.clientName = Entry(self.tab, fg='black', bg='white', font=("黑体", 11), relief=GROOVE, bd=2,
+		self.clientName = ttk.Entry(self.tab, style='basic.TEntry',
 		                        textvariable=self.clientNameVal)
 		self.clientName.place(x=self.lSpace + 10 * self.lSpace, y=rowY)
 
-		self.clientName_help = Label(self.tab, text='【作为远程访问的标识】', fg='black', bg='lightgray', font=("黑体", 10))
+		self.clientName_help = ttk.Label(self.tab, text='【作为远程访问的标识】', style="basic.TLabel")
 		self.clientName_help.place(x=helpX, y=rowY)
 
 		# 设定下载文件夹
@@ -258,19 +279,19 @@ class SetupTab(PTab):
 			self.downloadFolderVal.set(sys.path[0] + os.sep + self.clientNameVal.get())
 
 		rowY = rowY + self.hSpace * 3
-		self.downloadFolder_l = Label(self.tab, text='下载文件夹:', fg='black', bg='lightgray', font=("黑体", 12))
+		self.downloadFolder_l = ttk.Label(self.tab, text='下载文件夹:', style="basic.TLabel")
 		self.downloadFolder_l.place(x=self.lSpace, y=rowY)
 
-		self.downloadFolder = Entry(self.tab, fg='black', bg='white', font=("黑体", 11), relief=GROOVE, bd=2,
+		self.downloadFolder = ttk.Entry(self.tab, style='basic.TEntry',
 		                            textvariable=self.downloadFolderVal, width=50)
 		self.downloadFolder.place(x=self.lSpace + 10 * self.lSpace, y=rowY)
 
-		self.downloadFolder_btn = Button(self.tab, text="选择...", font=("黑体", 9),
-		                                 command=lambda: self.chooseFolder(self.downloadFolderVal), relief=GROOVE)
-		x = int(self.downloadFolder.place_info()["x"]) + int(self.downloadFolder.cget("width")) * 8 + 5
+		self.downloadFolder_btn = ttk.Button(self.tab, text="选择...", style="basic.TButton",
+		                                 command=lambda: self.chooseFolder(self.downloadFolderVal))
+		x = int(self.downloadFolder.place_info()["x"]) + self.downloadFolder.winfo_reqwidth() + 5
 		self.downloadFolder_btn.place(x=x, y=rowY)
 
-		self.downloadFolder_help = Label(self.tab, text='【设定下载文件所存放的位置】', fg='black', bg='lightgray', font=("黑体", 10))
+		self.downloadFolder_help = ttk.Label(self.tab, text='【设定下载文件所存放的位置】', style="basic.TLabel")
 		self.downloadFolder_help.place(x=helpX, y=rowY)
 
 		# 设定同步文件夹
@@ -280,19 +301,20 @@ class SetupTab(PTab):
 
 		rowY = rowY + self.hSpace * 3
 
-		self.syncFolder_l = Label(self.tab, text='同步文件夹:', fg='black', bg='lightgray', font=("黑体", 12))
+		self.syncFolder_l = ttk.Label(self.tab, text='同步文件夹:', style="basic.TLabel")
 		self.syncFolder_l.place(x=self.lSpace, y=rowY)
 
-		self.syncFolder = Entry(self.tab, fg='black', bg='white', font=("黑体", 11), relief=GROOVE, bd=2,
+		self.syncFolder = ttk.Entry(self.tab, style='basic.TEntry',
 		                        textvariable=self.syncFolderVal, width=50)
 		self.syncFolder.place(x=self.lSpace + 10 * self.lSpace, y=rowY)
 
-		self.syncFolder_btn = Button(self.tab, text="选择...", font=("黑体", 9),
-		                             command=lambda: self.chooseFolder(self.syncFolderVal), relief=GROOVE)
-		x = int(self.syncFolder.place_info()["x"]) + int(self.syncFolder.cget("width")) * 8 + 5
+		self.syncFolder_btn = ttk.Button(self.tab, text="选择...", style="basic.TButton",
+		                             command=lambda: self.chooseFolder(self.syncFolderVal))
+		x = int(self.syncFolder.place_info()["x"]) + self.syncFolder.winfo_reqwidth() + 5
+
 		self.syncFolder_btn.place(x=x, y=rowY)
 
-		self.syncFolder_help = Label(self.tab, text='【设定用于同步的文件夹】', fg='black', bg='lightgray', font=("黑体", 10))
+		self.syncFolder_help = ttk.Label(self.tab, text='【设定用于同步的文件夹】', style="basic.TLabel")
 		self.syncFolder_help.place(x=helpX, y=rowY)
 
 		# 设定访问密码
@@ -300,14 +322,14 @@ class SetupTab(PTab):
 		self.passwordVal = StringVar()
 		if not self.passwordVal.get(): self.passwordVal.set("000000")
 
-		self.password_l = Label(self.tab, text='访问密码:', fg='black', bg='lightgray', font=("黑体", 12))
+		self.password_l = ttk.Label(self.tab, text='访问密码:', style="basic.TLabel")
 		self.password_l.place(x=self.lSpace, y=rowY)
 
-		self.password = Entry(self.tab, fg='black', bg='white', font=("黑体", 11), relief=GROOVE, bd=2,
+		self.password = ttk.Entry(self.tab, style='basic.TEntry',
 		                      textvariable=self.passwordVal, width=20, show="*")
 		self.password.place(x=self.lSpace + 10 * self.lSpace, y=rowY)
 
-		self.password_help = Label(self.tab, text='【远程访问本机的密码】', fg='black', bg='lightgray', font=("黑体", 10))
+		self.password_help = ttk.Label(self.tab, text='【远程访问本机的密码】', style="basic.TLabel")
 		self.password_help.place(x=helpX, y=rowY)
 
 		# 设定代理服务器
@@ -324,14 +346,14 @@ class SetupTab(PTab):
 		self.proxyIPVal = StringVar()
 		self.proxyIPVal.set("10.191.113.100")
 
-		self.proxyIP_l = Label(self.tab, text='IP:', fg='black', bg='lightgray', font=("黑体", 12))
+		self.proxyIP_l = ttk.Label(self.tab, text='IP:', style="basic.TLabel")
 		self.proxyIP_l.place(x=self.lSpace, y=rowY)
 
-		self.proxyIP = Entry(self.tab, fg='black', bg='white', font=("黑体", 11), relief=GROOVE, bd=2,
+		self.proxyIP = ttk.Entry(self.tab, style='basic.TEntry',
 		                     textvariable=self.proxyIPVal, width=16)
 		self.proxyIP.place(x=self.lSpace + 10 * self.lSpace, y=rowY)
 
-		self.proxyIP_help = Label(self.tab, text='【格式：XX.XX.XX.XX】', fg='black', bg='lightgray', font=("黑体", 10))
+		self.proxyIP_help = ttk.Label(self.tab, text='【格式：XX.XX.XX.XX】', style="basic.TLabel")
 		self.proxyIP_help.place(x=helpX, y=rowY)
 
 		# 设定端口
@@ -339,14 +361,14 @@ class SetupTab(PTab):
 		self.proxyPortVal = StringVar()
 		self.proxyPortVal.set("8002")
 
-		self.proxyPort_l = Label(self.tab, text='端口:', fg='black', bg='lightgray', font=("黑体", 12))
+		self.proxyPort_l = ttk.Label(self.tab, text='端口:', style="basic.TLabel")
 		self.proxyPort_l.place(x=self.lSpace, y=rowY)
 
-		self.proxyPort = Entry(self.tab, fg='black', bg='white', font=("黑体", 11), relief=GROOVE, bd=2,
+		self.proxyPort = ttk.Entry(self.tab, style='basic.TEntry',
 		                       textvariable=self.proxyPortVal, width=6)
 		self.proxyPort.place(x=self.lSpace + 10 * self.lSpace, y=rowY)
 
-		self.proxyPort_help = Label(self.tab, text='【格式：XXXX】', fg='black', bg='lightgray', font=("黑体", 10))
+		self.proxyPort_help = ttk.Label(self.tab, text='【格式：XXXX】', style="basic.TLabel")
 		self.proxyPort_help.place(x=helpX, y=rowY)
 
 		# 设定用户名
@@ -354,14 +376,14 @@ class SetupTab(PTab):
 		self.proxyUserVal = StringVar()
 		self.proxyUserVal.set("weijiaohua-004")
 
-		self.proxyUser_l = Label(self.tab, text='用户名:', fg='black', bg='lightgray', font=("黑体", 12))
+		self.proxyUser_l = ttk.Label(self.tab, text='用户名:', style="basic.TLabel")
 		self.proxyUser_l.place(x=self.lSpace, y=rowY)
 
-		self.proxyUser = Entry(self.tab, fg='black', bg='white', font=("黑体", 11), relief=GROOVE, bd=2,
+		self.proxyUser = ttk.Entry(self.tab, style='basic.TEntry',
 		                       textvariable=self.proxyUserVal, width=20)
 		self.proxyUser.place(x=self.lSpace + 10 * self.lSpace, y=rowY)
 
-		self.proxyUser_help = Label(self.tab, text='【可以为空】', fg='black', bg='lightgray', font=("黑体", 10))
+		self.proxyUser_help = ttk.Label(self.tab, text='【可以为空】', style="basic.TLabel")
 		self.proxyUser_help.place(x=helpX, y=rowY)
 
 		# 设定用户密码
@@ -369,28 +391,26 @@ class SetupTab(PTab):
 		self.proxyPasswordVal = StringVar()
 		self.proxyPasswordVal.set("Cpic2190#")
 
-		self.proxyPassword_l = Label(self.tab, text='用户密码:', fg='black', bg='lightgray', font=("黑体", 12))
+		self.proxyPassword_l = ttk.Label(self.tab, text='用户密码:', style="basic.TLabel")
 		self.proxyPassword_l.place(x=self.lSpace, y=rowY)
 
-		self.proxyPassword = Entry(self.tab, fg='black', bg='white', font=("黑体", 11), relief=GROOVE, bd=2,
+		self.proxyPassword = ttk.Entry(self.tab, style='basic.TEntry',
 		                           textvariable=self.proxyPasswordVal, width=20, show="*")
 		self.proxyPassword.place(x=self.lSpace + 10 * self.lSpace, y=rowY)
 
-		self.proxyPassword_help = Label(self.tab, text='【可以为空】', fg='black', bg='lightgray', font=("黑体", 10))
+		self.proxyPassword_help = ttk.Label(self.tab, text='【可以为空】', style="basic.TLabel")
 		self.proxyPassword_help.place(x=helpX, y=rowY)
 
 		self.proxyCheck()
 		# 恢复默认&确认修改
 		rowY = rowY + self.hSpace * 6
-		self.reset_btn = Button(self.tab, text="恢复默认", font=("黑体", 12), bitmap="gray12", width=100, height=30,
-		                        compound=LEFT, anchor=W,
-		                        command=lambda: self.updateInfo("reset"), relief=GROOVE)
+		self.reset_btn = ttk.Button( self.tab, text="恢复默认", style="basic.TButton",
+		                        command=lambda: self.updateInfo("reset"))
 		x = self.root.shape[0] / 2 + 20
 		self.reset_btn.place(x=x, y=rowY)
 
-		self.update_btn = Button(self.tab, text="确认修改", font=("黑体", 12), bitmap="gray12", width=100, height=30,
-		                         compound=LEFT, anchor=W,
-		                         command=lambda: self.updateInfo("update"), relief=GROOVE)
+		self.update_btn = ttk.Button( self.tab, text="确认修改", style="basic.TButton",
+		                         command=lambda: self.updateInfo("update"))
 		x = self.root.shape[0] / 2 - 20 - 80
 		self.update_btn.place(x=x, y=rowY)
 
@@ -454,57 +474,58 @@ class DownloadTab(PTab):
 		rowY = self.top + self.hSpace
 		rowX = self.lSpace
 
-		self.connClient_l = Label(self.tab, text='在线终端:', fg='black', bg='lightgray', font=("黑体", 12))
+
+		self.connClient_l = ttk.Label(self.tab, text='在线终端:' + ' '*10, style="basic.TLabel")
 		self.connClient_l.place(x=rowX, y=rowY)
 
-		rowX += 140
-		self.connClient = ttk.Combobox(self.tab, font=("黑体", 12),
-		                               textvariable=self.connClientVal, width=20)
+		rowX += self.connClient_l.winfo_reqwidth() + 5
+		self.connClient = ttk.Combobox(self.tab, style="basic.TCombobox",
+		                               textvariable=self.connClientVal, width=18)
 		self.connClient.place(x=rowX, y=rowY)
 		#self.connClient["values"] = ("server", "dadmac", "officemac")
 
-		rowX += 160
-		self.connClientPWD_l = Label(self.tab, text='连接密码:', fg='black', bg='lightgray', font=("黑体", 12))
+		rowX += self.connClient.winfo_reqwidth() + 5
+		self.connClientPWD_l = ttk.Label(self.tab, text='连接密码:', style="basic.TLabel")
 		self.connClientPWD_l.place(x=rowX, y=rowY)
 
-		rowX += 80
+		rowX += self.connClientPWD_l.winfo_reqwidth() + 5
 		self.connClientPWDVal = StringVar()
-		self.connClientPWD = Entry(self.tab, fg='black', bg='white', font=("黑体", 11), relief=GROOVE, bd=2,
+		self.connClientPWD = ttk.Entry(self.tab, style='basic.TEntry',
 		                           textvariable=self.connClientPWDVal, width=10)
 		self.connClientPWD.place(x=rowX, y=rowY)
 
-		rowX += 90
-		self.connClientBtn = Button(self.tab, fg='black', bg='lightgray', font=("黑体", 12), relief=GROOVE, bd=2,
-		                            text="连接1", bitmap='gray12', width=40, compound=LEFT, anchor=W, padx=5,
+		rowX += self.connClientPWD.winfo_reqwidth() + 5
+		self.connClientBtn = ttk.Button( self.tab, style="basic.TButton",
+		                            text="连接",
 		                            command=self.connectClient)
 		self.connClientBtn.place(x=rowX, y=rowY)
 
-		rowX += 120
-		self.connClient_help = Label(self.tab, text='【连接远程终端】', fg='black', bg='lightgray', font=("黑体", 12))
+		rowX += self.connClientBtn.winfo_reqwidth() + 5
+		self.connClient_help = ttk.Label(self.tab, text='【连接远程终端】',style="basic.TLabel")
 		self.connClient_help.place(x=rowX, y=rowY)
 
 		# 设定当前目录#######
 		rowY = self.top + self.hSpace * 6
 		rowX = self.lSpace
 
-		self.remoteDir_l = Label(self.tab, text='远程终端的当前目录为:', fg='black', bg='lightgray', font=("黑体", 12))
+		self.remoteDir_l = ttk.Label(self.tab, text='远程终端当前目录为:', style="basic.TLabel")
 		self.remoteDir_l.place(x=rowX, y=rowY)
 
-		rowX += 140
+		rowX += self.remoteDir_l.winfo_reqwidth() + 5
 		self.remoteDirVal = StringVar()
-		self.remoteDir = Entry(self.tab, fg='black', bg='white', font=("黑体", 11), relief=GROOVE, bd=1,
-		                       textvariable=self.remoteDirVal, width=70)
+		self.remoteDir = ttk.Entry(self.tab, style='basic.TEntry',
+		                       textvariable=self.remoteDirVal, width=60)
 		self.remoteDir.place(x=rowX, y=rowY)
 
-		rowX += 450
-		self.remoteDirEnterBtn = Button(self.tab, fg='black', bg='lightgray', font=("黑体", 12), relief=GROOVE, bd=2,
-		                                text="进入目录", bitmap='gray12', width=40, compound=LEFT, anchor=W, padx=5,
+		rowX += self.remoteDir.winfo_reqwidth() + 5
+		self.remoteDirEnterBtn = ttk.Button( self.tab,style="basic.TButton",
+		                                text="进入目录",
 		                                command=lambda:self.enterRemoteFolder(self.remoteDirVal.get()))
 		self.remoteDirEnterBtn.place(x=rowX, y=rowY)
 
-		rowX += 100
-		self.remoteDirReturnBtn = Button(self.tab, fg='black', bg='lightgray', font=("黑体", 12), relief=GROOVE, bd=2,
-		                                 text="返回上层", bitmap='gray12', width=40, compound=LEFT, anchor=W, padx=5,
+		rowX += self.remoteDirEnterBtn.winfo_reqwidth() + 5
+		self.remoteDirReturnBtn = ttk.Button( self.tab, style="basic.TButton",
+		                                 text="返回上层",
 		                                 command=lambda: self.enterRemoteFolder(".."))
 		self.remoteDirReturnBtn.place(x=rowX, y=rowY)
 
@@ -513,7 +534,7 @@ class DownloadTab(PTab):
 		rowX = self.lSpace
 
 		self.titleList = Listbox(self.tab,fg='black', bg='lightgray', font=("黑体", -10), relief=GROOVE,
-		                         width=140, height=20, activestyle='dotbox')
+		                         width=150, height=20, activestyle='dotbox')
 
 		self.titleList.place(x=rowX, y=rowY)
 
@@ -529,7 +550,7 @@ class DownloadTab(PTab):
 		# 显示标题###########
 		col_num = 1
 
-		self.titleDef = [("名称", 18, "name"), ("类型", 5, "ext"), ("大小", 5, "size"), ("修改时间", 8, "mtime"),
+		self.titleDef = [("名称", 22, "name"), ("类型", 5, "ext"), ("大小", 5, "size"), ("修改时间", 8, "mtime"),
 		("创建时间", 8, "ctime"), ("本地状态", 5, "state")]
 
 		self.title, self.col_len_l = rowTitle(self.titleDef)
@@ -542,18 +563,16 @@ class DownloadTab(PTab):
 
 		# 显示进度条
 		rowX = self.lSpace
-		rowY += self.hSpace * 34
+		rowY += self.hSpace * 30
 
 		self.progressBarVal = DoubleVar()
 
-		style = ttk.Style()
-		style.configure("style.Label", foreground="black", background="lightgray",font=("黑体", 12))
-		#
 
-		self.progressBar_l  = ttk.Label(self.tab, text='执行进度:', style='style.Label')
+
+		self.progressBar_l  = ttk.Label(self.tab, text='执行进度:' + ' '*10, style='basic.TLabel')
 		self.progressBar_l.place(x=rowX, y=rowY)
 
-		rowX += self.lSpace * 10
+		rowX += self.progressBar_l.winfo_reqwidth() + 5
 		self.progressBar = ttk.Progressbar(self.tab, variable=self.progressBarVal, length='400', mode='determinate')
 		self.progressBar.place(x=rowX, y=rowY)
 		self.root.progressBar = self.progressBar
@@ -657,14 +676,14 @@ class SyncTab(PTab):
 		helpX = self.lSpace + 58 * self.lSpace
 		# 设定终端名称
 		rowY = self.top + self.hSpace
-		self.clientName_l = Label(self.tab, text='同步名称:', fg='black', bg='lightgray', font=("黑体", 12))
+		self.clientName_l = ttk.Label(self.tab, text='同步名称:', style="basic.TLabel")
 		self.clientName_l.place(x=self.lSpace, y=rowY)
 
-		self.clientName = Entry(self.tab, fg='black', bg='white', font=("黑体", 11), relief=GROOVE, bd=2,
+		self.clientName = ttk.Entry(self.tab, style='basic.TEntry',
 		                        textvariable=self.clientNameVal)
 		self.clientName.place(x=self.lSpace + 10 * self.lSpace, y=rowY)
 
-		self.clientName_help = Label(self.tab, text='【作为远程访问的标识】', fg='black', bg='lightgray', font=("黑体", 10))
+		self.clientName_help = ttk.Label(self.tab, text='【作为远程访问的标识】', style="basic.TLabel")
 		self.clientName_help.place(x=helpX, y=rowY)
 
 
