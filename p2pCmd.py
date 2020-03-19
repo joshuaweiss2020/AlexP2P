@@ -42,13 +42,14 @@ class MyCmd(Cmd):
 			if  not isfile(join(downloadDir, filename)):
 				self.proxy.getFileFromOther(fromW,self.clientName,pathStr,filename)
 				self.mPrint("From ",fromW,":",filename," start getting file.....")
-				self.proxy.setSessionState(self.clientName, "fileFetch", "0")
+				self.proxy.setSessionState(self.clientName, "fileFetch", nowStr() + "开始传送文件{}".format(filename), 1)
 				i=0
 				while not isfile(join(self.clientName,filename)):
 					
-					state = self.proxy.getSessionState(self.clientName,"fileFetch")
-					if state == "fail":
-						sleep(4)
+					msg, state = self.proxy.getSessionState(self.clientName,"fileFetch")
+					self.mPrint(msg, state)
+					if state == -1 or state == 5 :
+						sleep(1)
 						return
 					sleep(1)
 					i+=1

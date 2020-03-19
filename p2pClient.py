@@ -9,10 +9,10 @@ from tkinter import StringVar, IntVar
 
 # s = ServerProxy('http://106.13.113.252:9001')
 
-URL = "http://106.13.113.252:9001"
+#URL = "http://106.13.113.252:9001"
 
 
-#URL = "http://127.0.0.1:2001"
+URL = "http://127.0.0.1:2001"
 
 
 
@@ -68,19 +68,28 @@ class MyClient:
                     pathStr = cmd["args"][0]
                     filename = cmd["args"][1]
                     data = self.getFileData(join(pathStr, filename))
+                    self.proxy.setSessionState(cmd["fromW"], "fileFetch", nowStr() + " 已从{}找到文件{}".format(self.clientName,filename),2)
                     self.proxy.sendFileToServer(data, filename, cmd["fromW"])
+
+                    self.proxy.setSessionState(cmd["fromW"], "fileFetch",
+                                               nowStr() + " 已准备好文件{}".format(filename), 3)
+
                     self.mPrint("sendFileToServer successfully:", filename)
                     self.proxy.noticeToGetFile(self.clientName, cmd["fromW"], filename)
                     self.mPrint("noticeToGetFile successfully:", cmd["fromW"], ",", filename)
                 except FileNotFoundError as e:
                     self.mPrint(cmd["fromW"], "file:" + filename + " cann't find!")
                     self.proxy.sendInfo(self.clientName, cmd["fromW"], "file:" + filename + " cann't find!")
-                    self.proxy.setSessionState(cmd["fromW"], "fileFetch", "fail")
+                    self.proxy.setSessionState(cmd["fromW"], "fileFetch", nowStr() + " 未找到文件{}".format(filename), -1)
 
             elif cmd["cmdC"] == "getFileFromServer":  # 去服务器取文件
                 filename = cmd["args"][0]
+                self.proxy.setSessionState(self.clientName, "fileFetch",
+                                           nowStr() + " 开始传送文件{}".format(filename), 4)
                 data = self.proxy.query(filename, self.clientName)
                 self.saveFileInClient(data, filename)
+                self.proxy.setSessionState(self.clientName,"fileFetch","文件{} 下载成功！ 存放于{} ".format(filename, self.clientInfo["downloadFolderVal"])
+                                           , 5)
                 # self.proxy.getFileFromServer(filename,self.dirName)
                 self.mPrint("文件{} 下载成功！ 存放于{} ".format(filename, self.clientInfo["downloadFolderVal"]))
             elif cmd["cmdC"] == "changeDir":

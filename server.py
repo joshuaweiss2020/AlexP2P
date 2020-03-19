@@ -167,13 +167,15 @@ class MyServer:
         self.cmds.append(cmd)
         return len(self.cmds)
 
-    def setSessionState(self, clientName, item, value):
+    def setSessionState(self, clientName, item, value, state=0):
         self.sessionState[clientName] = {}
         self.sessionState[clientName][item] = value
+        self.sessionState[clientName]["state"] = state
+        print("_________________session set ",clientName," item:",item, " value:",value," state:",state)
         return 0
 
     def getSessionState(self, clientName, item):
-        return self.sessionState[clientName][item]
+        return self.sessionState[clientName][item], self.sessionState[clientName]["state"]
 
     def getFileFromOther(self, fromW, byW, pathStr, filename):  # 从另一台电脑上获取文件
         cmd = MyCmd(byW, fromW, 'sendFileToServer', [pathStr, filename], 'noticeToGetFile')
@@ -193,6 +195,7 @@ class MyServer:
     def noticeToGetFile(self, fromW, sendW, filename):
         cmd = MyCmd(fromW, sendW, 'getFileFromServer', [filename])
         self.cmds.append(cmd)
+        print(nowStr()+ "_________________noticeToGetFile From",fromW," sendW:",sendW, " filename:",filename)
         return 0
 
     def getFileFromServer(self, filename, dirName):

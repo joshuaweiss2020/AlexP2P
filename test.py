@@ -46,20 +46,9 @@ wnd.geometry(alignstr)
 
 pVal = DoubleVar()
 
-style = ttk.Style()
-style.configure("style.Label", foreground="black", background="lightgray", font=("黑体", -10))
 #
 
-progressBar_l = ttk.Label(wnd, text='执行进度:', style='style.Label')
-progressBar_l.place(x=100, y=100)
 
-p= ttk.Progressbar(wnd, variable=pVal, length='400', mode='determinate', maximum=100)
-p.place(x=100, y=300)
-
-btn = Button(wnd, text="选择...", font=("黑体", 9),
-                                 command=lambda: btntest(1), relief=GROOVE)
-
-btn.place(x=500, y=300)
 
 
 def btntest(t):
@@ -79,17 +68,70 @@ f = tkFont.Font(family='黑体',size=-12)
 print(f.metrics())
 
 
-from myUtils import *
+# from myUtils import *
+#
+# print(nowStr())
+# i = 0.01
+# while i < 3:
+#     i+=0.01
+#     time.sleep(0.01)
+# print(nowStr())
 
-print(nowStr())
-i = 0.01
-while i < 3:
-    i+=0.01
-    time.sleep(0.01)
-print(nowStr())
+import tkinter.ttk
+
+style = ttk.Style()
+print(style.theme_names())
+# style.configure("style.Label", foreground="black", background="lightgray", font=("黑体", 12))
+# print(dir(style))
+
+style.configure("basic.TLabel", foreground="black", background="lightgray", font=("黑体", -20))
+
+# style.configure("label.basic.TLabel",font=("黑体", -50))
+
+
+progressBar_l = ttk.Label(wnd, text='执行进度:', style='basic.TLabel')
+progressBar_l.place(x=100, y=100)
+
+p= ttk.Progressbar(wnd, variable=pVal, length='400', mode='determinate', maximum=100)
+p.place(x=100, y=300)
+
+btn = Button(wnd, text="选择...", font=("黑体", 9),
+                                 command=lambda: btntest(1), relief=GROOVE)
+
+btn.place(x=500, y=200)
+
+infoFrame = ttk.LabelFrame(wnd, width=800, height=20,text="dddfffff中国")
+infoFrame.place(x=0, y=600-180)
+
+infoVar = StringVar()
+info_l = ttk.Label(infoFrame, text='状态信息:', style="basic.TLabel")
+
+
+# info_l.grid(row=1, column=1, sticky=W)
+
+import tkinter.scrolledtext
+
+infoList = tkinter.scrolledtext.ScrolledText(infoFrame,
+                                             fg='black', bg='lightgray', font=("黑体", -10), relief=GROOVE,
+                                             width=140,height=3)
+
+#infoFrame.grid_propagate(0)
+infoList.grid(row=0, column=0, sticky=EW)
+
+
+infoList.insert(1.0, " 欢迎使用Alex P2P 文件传送器\n")
+
+
+
+
+
+
+
+
+
 
 #print(tkFont.families())
-#wnd.mainloop()
+wnd.mainloop()
 
 #p.step(5)
 #p.step(10)
