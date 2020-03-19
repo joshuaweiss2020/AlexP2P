@@ -171,7 +171,6 @@ class MyServer:
         self.sessionState[clientName] = {}
         self.sessionState[clientName][item] = value
         self.sessionState[clientName]["state"] = state
-        print("_________________session set ",clientName," item:",item, " value:",value," state:",state)
         return 0
 
     def getSessionState(self, clientName, item):
@@ -195,7 +194,7 @@ class MyServer:
     def noticeToGetFile(self, fromW, sendW, filename):
         cmd = MyCmd(fromW, sendW, 'getFileFromServer', [filename])
         self.cmds.append(cmd)
-        print(nowStr()+ "_________________noticeToGetFile From",fromW," sendW:",sendW, " filename:",filename)
+
         return 0
 
     def getFileFromServer(self, filename, dirName):

@@ -85,11 +85,9 @@ class MyClient:
             elif cmd["cmdC"] == "getFileFromServer":  # 去服务器取文件
                 filename = cmd["args"][0]
                 self.proxy.setSessionState(self.clientName, "fileFetch",
-                                           nowStr() + " 开始传送文件{}".format(filename), 4)
+                                           nowStr() + " 开始传回文件{}".format(filename), 4)
                 data = self.proxy.query(filename, self.clientName)
                 self.saveFileInClient(data, filename)
-                self.proxy.setSessionState(self.clientName,"fileFetch","文件{} 下载成功！ 存放于{} ".format(filename, self.clientInfo["downloadFolderVal"])
-                                           , 5)
                 # self.proxy.getFileFromServer(filename,self.dirName)
                 self.mPrint("文件{} 下载成功！ 存放于{} ".format(filename, self.clientInfo["downloadFolderVal"]))
             elif cmd["cmdC"] == "changeDir":

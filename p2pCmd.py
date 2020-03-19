@@ -43,10 +43,19 @@ class MyCmd(Cmd):
 				self.proxy.getFileFromOther(fromW,self.clientName,pathStr,filename)
 				self.mPrint("From ",fromW,":",filename," start getting file.....")
 				self.proxy.setSessionState(self.clientName, "fileFetch", nowStr() + "开始传送文件{}".format(filename), 1)
+				self.root.progressBarVal.set(20)
+				self.root.progressInfo_l["text"] = nowStr() + \
+												   "开始从{} 传送文件{} 至 {} ".format(fromW, filename,downloadDir)
+				self.root.progressBar.update()
 				i=0
+				state_temp = 0
 				while not isfile(join(self.clientName,filename)):
 					
 					msg, state = self.proxy.getSessionState(self.clientName,"fileFetch")
+					if state > state_temp:
+						self.root.progressBarVal.set(20 * state)
+						self.root.progressInfo_l["text"] = msg
+						self.root.progressBar.update()
 					self.mPrint(msg, state)
 					if state == -1 or state == 5 :
 						sleep(1)
@@ -57,6 +66,8 @@ class MyCmd(Cmd):
 						self.mPrint("time out")
 						return
 				self.mPrint("From ",fromW,":",filename," checked successfully")
+				self.root.progressBarVal.set(100)
+				self.root.progressInfo_l["text"] = "文件{} 下载成功！ 存放于{} ".format(filename, downloadDir)
 			else:
 				self.mPrint(downloadDir, " ", filename ," 在下载目录中已存在!")
 
