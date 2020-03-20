@@ -82,6 +82,7 @@ class MyServer:
         self.sessionState = {}
         self.trans_ok = 0
         self.break_out = 0
+        self.startPath = "C:\\AlexP2P\\"
 
     @rpcEx
     def _start(self):
@@ -109,7 +110,7 @@ class MyServer:
     @rpcEx
     def regClient(self, name, clientInfo):  # 注册客户端
         if name not in self.clients.keys():
-            pathStr = join("userData", name)
+            pathStr = join(self.startPath, "userData", clientInfo["macAddr"]+ "_" + name)
             if not os.path.exists(pathStr):  # 如果不存在则创建目录
                 os.makedirs(pathStr)
                 os.makedirs(join(pathStr, "download"))
@@ -228,6 +229,35 @@ class MyServer:
         f.close()
         return 0
 
+    def getSyncInfoFromServer(self,clientName,macAddr): # 从服务器上读取用户的同步文件时间戳
+        pathStr = join(self.startPath, "userData", macAddr + "_" + clientName) # clientName 发起同步获取请求的客户端
+        pathStr = join(pathStr, "sync")
+
+        sInfo = {}
+
+        for root, dirs, files in os.walk(pathStr):
+            fPath = getReDir(root, pathStr) # 保留的目录为从同步文件开始的路径，以保证服务器与客户端一致
+            for f in files:
+                sInfo[join(fPath,f)] = os.path.getmtime(join(root,f))
+        return sInfo
+
+
+    def getSyncInfoListFromServer(self, clientName,macAddr,pathList,state=None): #获取服务器中列表的详细信息
+
+        infoList = []
+        for f in pathList:
+            pathStr = join(self.startPath, "userData", macAddr + "_" + clientName, "sync", f)  # clientName 发起同步获取请求的客户端
+            filename = os.path.basename(pathStr)
+            dirname = os.path.dirname(pathStr)
+            info = fileInfo(filename, dirname)
+            if info:
+                info["state"] = state
+                infoList.append(info)
+
+        return infoList
+
+
+
     def hello(self, other):
         if other not in self.known:
             self.known.add(other)  # other 为URL
@@ -281,5 +311,6 @@ def main():
 
 
 if __name__ == '__main__':
+    print("start..")
     main()
 # print(sys.argv)

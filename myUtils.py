@@ -209,6 +209,27 @@ def rowShow(titleDef, col_len_l, info, localDir=None):
     return col_data + "\n"
 
 
+def getReDir(pathStr,headPath): #获得除去给定头部路径以后的路径
+	if pathStr.startswith(headPath):
+		return pathStr.replace(headPath,"")
+	else:
+		raise MyException("路径：{}中未包含头部目录：{}".format(pathStr,headPath))
+
+def getFolderName(pathStr): # 返回当前所在的文件夹名称
+
+	sep = "\\"
+	if pathStr.find("/") > -1:
+		sep = "/"
+
+	listP = pathStr.split(sep)
+
+	if listP[len(listP)-1] == "":
+		return listP[len(listP)-2]
+	else:
+		return listP[len(listP) - 1]
+
+
+
 @deb
 def test(a, b, d=None):
     c = 5

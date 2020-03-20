@@ -49,6 +49,11 @@ class Root():
         tabId = self.notebook.select()
         index = self.notebook.index(tabId)
         self.widgets.tabs[index].show()
+        if index==2:
+            self.upload_files, self.download_files, self.same_files = self.myCmd.do_versionCheck()
+            print(self.upload_files)
+            print(self.download_files)
+            print(self.same_files)
 
     def initStyles(self):
         self.font_label = 12

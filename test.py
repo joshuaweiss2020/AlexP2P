@@ -131,11 +131,26 @@ infoList.insert(1.0, " 欢迎使用Alex P2P 文件传送器\n")
 
 
 #print(tkFont.families())
-wnd.mainloop()
+#wnd.mainloop()
 
 #p.step(5)
 #p.step(10)
 
+
+import os
+
+# from myUtils import *
+#
+# for root,dirs,files in os.walk("C:\\AlexP2P\\"):
+#     print("root:",getReDir(root,"C:\\AlexP2P\\"))
+#     print("dirs:",dirs)
+#     for f in files:
+#         print(fileInfo(f, root))
+#
+#
+# p = "C:\\AlexP2P\\aa\\"
+# p = "/usr/pddd"
+# print(getFolderName(p))
 
 
 
@@ -152,27 +167,27 @@ wnd.mainloop()
 #for k,v in titleDef:
 #    print(k[1],v)
 
-''' 
+
 from myUtils import *
 from xmlrpc.client import ServerProxy, Fault, Binary
 from myUtils import MyException
 
 URL = "http://127.0.0.1:2001"
-URL = "http://106.13.113.252:9001"
+# URL = "http://106.13.113.252:9001"
 proxy = ServerProxy(URL)
-clientName = "server"
+clientName = "DadMac1"
 clientInfo = {}
-clientInfo["clientNameVal"] = "DadMac"
-clientInfo["downloadFolderVal"] = "DadMac"
-clientInfo["syncFolderVal"] = "DadMac"
+clientInfo["clientNameVal"] = "DadMac1"
+clientInfo["downloadFolderVal"] = "DadMac1"
+clientInfo["syncFolderVal"] = "DadMac1"
 clientInfo["macAddr"] = getMacAdr()
 try:
-    #proxy.regClient("DadMac", clientInfo)
-    c = proxy.getClient("DavidWeiss")
-    print(c)
-    raise MyException("test error")
+    # proxy.regClient("DadMac1", clientInfo)
+    # c = proxy.getClient("DadMac1")
+    # print(c)
+    p = proxy.getSyncInfoFromServer(clientName,clientInfo["macAddr"])
+    print(p)
 
-   # proxy.test()
 except Fault as f:
     print("F:", f)
 except Exception as e:
@@ -180,29 +195,28 @@ except Exception as e:
 
 
 
-@catchRpcEx
-def t(proxy):
-    #proxy.test()
-    print(proxy.getClientList())
-
-
-# t(proxy)
-# print()
-
-# from tkinter import ttk
-# help(ttk.Combobox)
-f = {"a": 1, "b": 2}
-for a in f:
-    if a == "b":
-        f["b"]=3
-
-print(f)
-
-class cc:
-    def f_cc(self):
-        print("fcc")
-
-a = cc()
-
-print(dir(a.f_cc))
-'''
+# @catchRpcEx
+# def t(proxy):
+#     #proxy.test()
+#     print(proxy.getClientList())
+#
+#
+# # t(proxy)
+# # print()
+#
+# # from tkinter import ttk
+# # help(ttk.Combobox)
+# f = {"a": 1, "b": 2}
+# for a in f:
+#     if a == "b":
+#         f["b"]=3
+#
+# print(f)
+#
+# class cc:
+#     def f_cc(self):
+#         print("fcc")
+#
+# a = cc()
+#
+# print(dir(a.f_cc))

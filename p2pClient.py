@@ -9,10 +9,10 @@ from tkinter import StringVar, IntVar
 
 # s = ServerProxy('http://106.13.113.252:9001')
 
-URL = "http://106.13.113.252:9001"
+#URL = "http://106.13.113.252:9001"
 
 
-#URL = "http://127.0.0.1:2001"
+URL = "http://127.0.0.1:2001"
 
 
 
@@ -28,6 +28,7 @@ class MyClient:
             self.clientInfo["syncFolderVal"] = "server"
             self.clientInfo["passwordVal"] = "server"
             cmd = {"args": ["server"]}
+            self.clientInfo["macAddr"] = "server"
             self.root = None
 
         else:

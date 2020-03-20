@@ -65,17 +65,54 @@ class MyCmd(Cmd):
 					if i>20:
 						self.mPrint("time out")
 						return
-				self.mPrint("From ",fromW,":",filename," checked successfully")
+				self.mPrint("从 ", fromW,"获取的文件",filename," 已保存成功！")
 				self.root.progressBarVal.set(100)
 				self.root.progressInfo_l["text"] = "文件{} 下载成功！ 存放于{} ".format(filename, downloadDir)
 			else:
 				self.mPrint(downloadDir, " ", filename ," 在下载目录中已存在!")
 
 		except Fault as f:
-			#self.mPrint(f.faultCode)
-			self.mPrint("Couldn't find file:",filename)
-		#finally:
-		#	self.mPrint("fail")
+			self.mPrint("打不到文件:",filename)
+
+	def do_versionCheck(self): #同步的版本比较
+		upload_files, download_files, same_files = [] , [], []
+
+		sInfo = self.proxy.getSyncInfoFromServer(self.clientName, getMacAdr())
+		localSyncDir = self.root.myClient.clientInfo["syncFolderVal"]
+		sInfo_c = sInfo.copy() #用于作比较
+
+		for root, dirs, files in os.walk(localSyncDir):
+			fPath = getReDir(root, localSyncDir)  # 保留的目录为从同步文件开始的路径，以保证服务器与客户端一致
+			absPathStr = os.path.abspath(root)
+			for f in files:
+				info = fileInfo(f, absPathStr)
+				if join(fPath, f) not in sInfo: # 远程无文件
+					info["state"] = "本地新建"
+					upload_files.append(info)
+				else:
+					localStamp = os.path.getmtime(join(root, f))
+					remoteStamp = sInfo[join(fPath, f)]
+
+					if localStamp < remoteStamp: # 远程文件较新
+						info["state"] = "远程较新"
+						download_files.append(info)
+
+					elif localStamp == remoteStamp:  # 远程文件与本地文件相同
+						info["state"] = "已作同步"
+						same_files.append(info)
+					else: 		# 本地文件较新
+						info["state"] = "本地较新"
+						upload_files.append(info)
+
+					del sInfo_c[join(fPath, f)]
+
+		#对于远程同步存在，但本地不存在的文件，加入到待下载列表
+		download_files += self.proxy.getSyncInfoListFromServer(self.clientName, getMacAdr(),list(sInfo_c.keys()), '无地尚无')
+
+
+
+		return upload_files, download_files, same_files
+
 
 	def do_get(self,arg):
 		filename = arg
