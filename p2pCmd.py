@@ -140,6 +140,7 @@ class MyCmd(Cmd):
 
         self.root.syncProgressBarVal.set(40)
         self.root.syncProgressInfo_l["text"] = nowStr() + " 远程同步文件夹中的文件{} 数据读取成功".format(filename)
+        self.root.syncAllProgressBar.update()
 
         self.root.myClient.saveFileInClient(data, filename, syncDir)
         self.root.syncProgressBarVal.set(100)
@@ -148,6 +149,7 @@ class MyCmd(Cmd):
                                                                           join(self.root.myClient.clientInfo[
                                                                                    "syncFolderVal"], syncDir))
         self.root.syncAllProgressBarVal.set(100)
+        self.root.syncAllProgressBar.update()
 
         self.mPrint("文件{} 下载成功！ 存放于{} ".format(filename, join(self.root.myClient.clientInfo["syncFolderVal"], syncDir)))
 
@@ -169,8 +171,12 @@ class MyCmd(Cmd):
             self.root.syncAllProgressBarVal.set(progress)
             self.root.syncAllProgressInfo_l["text"] = nowStr() + " 正在从服务器下载文件({}/{}){}".format(i, fileCount,
                                                                                                info["name"])
+            self.root.syncAllProgressBar.update()
 
-        self.root.syncAllProgressInfo_l["text"] = nowStr() + " 已完成下载文件({}/{})".format(i, fileCount)
+        downCount = len(self.root.download_files)
+        self.root.syncAllProgressInfo_l["text"] = nowStr() + " 已完成全部下载文件({}/{})".format(downCount,downCount)
+
+        self.mPrint(" 已完成全部下载文件({}/{})".format(downCount,downCount))
         return len(self.root.download_files)
 
     def do_syncUpload(self, info):  # 从服务器上传同步文件
@@ -185,12 +191,16 @@ class MyCmd(Cmd):
         data = self.root.myClient.getFileData(join(info["dirName"], filename))
         self.root.syncProgressBarVal.set(40)
         self.root.syncProgressInfo_l["text"] = nowStr() + " 开始向服务器同步文件夹上传文件{}".format(filename)
+        self.root.syncAllProgressBar.update()
 
         self.proxy.sendFileToServer(data, filename, self.clientName, syncDir)
         self.root.syncProgressBarVal.set(100)
         self.root.syncProgressInfo_l["text"] = nowStr() + " 文件{}上传同步成功！".format(filename)
 
         self.root.syncAllProgressBarVal.set(100)
+        self.root.syncAllProgressBar.update()
+
+        self.mPrint("文件{} 上传成功！".format(filename))
 
     def do_syncUploadAll(self):  # 上传所有文件
         progress = 0
@@ -213,17 +223,25 @@ class MyCmd(Cmd):
             self.root.syncAllProgressBarVal.set(progress)
             self.root.syncAllProgressInfo_l["text"] = nowStr() + " 正在向服务器上传文件({}/{}){}".format(i, fileCount,
                                                                                                info["name"])
+            self.root.syncAllProgressBar.update()
 
-        self.root.syncAllProgressInfo_l["text"] = nowStr() + " 上传文件同步全部已完成({}/{})".format(i, fileCount)
+        uploadCount = len(self.root.upload_files)
+        self.root.syncAllProgressInfo_l["text"] = nowStr() + " 上传文件同步全部已完成({}/{})".format(uploadCount,uploadCount)
+
+        self.mPrint(" 上传文件同步全部已完成({}/{})".format(uploadCount,uploadCount))
+
         return len(self.root.upload_files)
 
     def do_syncAll(self):  # 一键同步
         self.do_syncDownloadAll()
         self.do_syncUploadAll()
 
-        self.root.syncAllProgressInfo_l["text"] = "{} 同步文件全部已完成(上传：{} 下载：{})".format(nowStr(),
+
+        self.root.syncAllProgressInfo_l["text"] = "{} 同步文件全部已完成 (上传：{} 下载：{}) ".format(nowStr(),
                                                                                      len(self.root.upload_files),
                                                                                      len(self.root.download_files))
+
+        self.mPrint(" 同步文件全部已完成( 上传：{} 下载：{} )".format(len(self.root.upload_files),len(self.root.download_files)))
 
     def do_get(self, arg):
         filename = arg
