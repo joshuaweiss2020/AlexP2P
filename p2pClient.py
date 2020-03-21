@@ -107,6 +107,7 @@ class MyClient:
         return Binary(open(join(self.dirName, filename), 'rb').read())
 
     def updateClientInfo(self, cmd=None):
+        dirName=""
         try:
             if cmd:
                 dirName = cmd["args"][0]
@@ -119,8 +120,15 @@ class MyClient:
         except FileNotFoundError as e:
             self.proxy.sendInfo(self.clientName, cmd["fromW"], dirName + " dir cann't find! Still in " + self.dirName)
 
-    def saveFileInClient(self, data, filename):
-        with open(join(self.clientInfo["downloadFolderVal"], filename), 'wb') as f:
+    def saveFileInClient(self, data, filename ,syncDir=None):
+        if syncDir == None: # 下载
+            pathStr = self.clientInfo["downloadFolderVal"]
+        else: # 同步
+            pathStr = join(self.clientInfo["syncFolderVal"], syncDir)
+            if not path.exists(pathStr):
+                os.makedirs(pathStr, exist_ok=True)
+
+        with open(join(pathStr, filename), 'wb') as f:
             f.write(data.data)
 
     def clientLoop(self):

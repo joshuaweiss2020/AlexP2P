@@ -185,9 +185,9 @@ try:
     # proxy.regClient("DadMac1", clientInfo)
     # c = proxy.getClient("DadMac1")
     # print(c)
-    p = proxy.getSyncInfoFromServer(clientName,clientInfo["macAddr"])
-    print(p)
-
+    # p = proxy.getSyncInfoFromServer(clientName,clientInfo["macAddr"])
+    # print(p)
+    pass
 except Fault as f:
     print("F:", f)
 except Exception as e:
@@ -220,3 +220,23 @@ except Exception as e:
 # a = cc()
 #
 # print(dir(a.f_cc))
+hostname = "aaaa.fdada-fda d "
+hostname = re.sub('[ .-]', "_", hostname)
+print(hostname)
+
+print(showByWidth("你们好吗hello",10))
+
+data = b"test"
+path = os.path.join("C:\\AlexP2P\\userData\\94e6f77fae94_CXYSL_C1CF\\sync\\Log", "Log\\lva_setupfull_20190625141900_0.log")
+p = "/log/ald.txt"
+p = re.sub('^[\\\/]','',p)
+
+print(p)
+#dir = os.path.dirname(path)
+
+#
+# os.makedirs(dir, exist_ok=True)
+# with open(path, 'wb') as f:
+#    f.write(data)
+p = "远程办公三足鼎立，飞书能否后来居上，拳打钉钉脚{}...".format("dd")
+print(p)

@@ -40,6 +40,7 @@ def rpcEx(fn):  # 用于在 rpc的服务器端向远程客户端抛Fault异常�
             return fn(*args, **kwargs)
         except Exception as e:
             print(fn.__class__, ":", fn.__name__, "rpc 调用异常（服务器端）：", str(e))
+            traceback.print_exc()
             raise Fault(0, str(e))
 
     return raiseFault
@@ -54,8 +55,10 @@ def catchRpcEx(fn) -> object:  # 用于在rpc的客户端抓取Fault异常的装
             print(":", fn.__name__, " rpc 远程调用异常（客户端）：", str(f))
         # traceback.print_exc()
         except Exception as e:
+            traceback.print_exc()
             print(":", fn.__name__, "rpc 客户端本地调用异常：", str(e))
-        # traceback.print_exc()
+
+    # traceback.print_exc()
 
     return catchFault
 
@@ -132,10 +135,14 @@ def setProgressBar(bar, sec, loc):  # 设置进度条，sec为运行秒数，loc
     print(nowStr())
 
 
+
 def fileInfo(filename, dirname=""):
     info = {}
     info["name"] = filename
     info["dirName"] = dirname
+    info["folderName"] = getFolderName(dirname)
+
+
     info["path"] = path.join(dirname, filename)
     info["exists"] = path.exists(info["path"])
 
@@ -196,38 +203,50 @@ def rowShow(titleDef, col_len_l, info, localDir=None):
 
     col_num = 0
     col_data = ""
+    try:
+        for col in titleDef:
+            col_width = col_len_l[col_num]
+            col_info = showByWidth(info[col[2]], col_width)
+            col_width -= lenUtf(col_info) - len(col_info)
 
-    for col in titleDef:
-        col_width = col_len_l[col_num]
-        col_info = info[col[2]]
-        col_width -= lenUtf(col_info) - len(col_info)
+            col_fmt = "{{:<{}}}".format(col_width)
+            col_data += col_fmt.format(col_info)
+            col_num += 1
+    except Exception as e:
+        print("col_inf:", col_info)
+        print("e:",e)
 
-        col_fmt = "{{:<{}}}".format(col_width)
-        col_data += col_fmt.format(col_info)
-        col_num += 1
 
     return col_data + "\n"
 
 
-def getReDir(pathStr,headPath): #获得除去给定头部路径以后的路径
-	if pathStr.startswith(headPath):
-		return pathStr.replace(headPath,"")
-	else:
-		raise MyException("路径：{}中未包含头部目录：{}".format(pathStr,headPath))
+def getReDir(pathStr, headPath):  # 获得除去给定头部路径以后的路径
+    if pathStr.startswith(headPath):
+        return pathStr.replace(headPath, "")
+    else:
+        raise MyException("路径：{}中未包含头部目录：{}".format(pathStr, headPath))
 
-def getFolderName(pathStr): # 返回当前所在的文件夹名称
 
-	sep = "\\"
-	if pathStr.find("/") > -1:
-		sep = "/"
+def getFolderName(pathStr):  # 返回当前所在的文件夹名称
 
-	listP = pathStr.split(sep)
+    sep = "\\"
+    if pathStr.find("/") > -1:
+        sep = "/"
 
-	if listP[len(listP)-1] == "":
-		return listP[len(listP)-2]
-	else:
-		return listP[len(listP) - 1]
+    listP = pathStr.split(sep)
 
+    if listP[len(listP) - 1] == "":
+        return listP[len(listP) - 2]
+    else:
+        return listP[len(listP) - 1]
+
+
+def showByWidth(str, width):  # 按指定长度显示字符串，最后三位用...
+    d = lenUtf(str) - len(str)  # 处理中文占两个字符
+    if lenUtf(str) < width:
+        return str
+    else:
+        return str[0:width - 3 - d] + "..."
 
 
 @deb

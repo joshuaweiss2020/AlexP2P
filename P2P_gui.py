@@ -40,7 +40,12 @@ class Root():
         self.buttonShape = (100, 30)
         # self.buttonPad = ()
         self.tabShape = (self.shape[0], self.shape[1])  # - self.buttonShape[1])
-        self.myClient, self.myCmd, self.PTab, self.clientName, self.progressBar = None, None, None, None, None
+        self.myClient, self.myCmd, self.PTab, self.clientName = None, None, None, None
+        self.progressBar,self.syncProgressBar = None, None
+        self.syncFolderVal, self.progressBarVal, self.syncProgressBarVal = None, None, None
+        self.syncProgressInfo_l, self.progressInfo_l = None, None
+        self.upload_files, self.download_files, self.same_files = None, None, None
+        self.syncListSelected = None
 
         self.style = ttk.Style()
         self.initStyles()
@@ -50,10 +55,8 @@ class Root():
         index = self.notebook.index(tabId)
         self.widgets.tabs[index].show()
         if index==2:
-            self.upload_files, self.download_files, self.same_files = self.myCmd.do_versionCheck()
-            print(self.upload_files)
-            print(self.download_files)
-            print(self.same_files)
+            self.myCmd.do_versionCheck()
+            self.widgets.tabs[index].viewSyncFiles("upload")
 
     def initStyles(self):
         self.font_label = 12
@@ -203,6 +206,21 @@ class PTab():
         pass
 
 
+    def showFilelist(self, fileList,localDir=None): #localDir用于远程文件与本地目录中的文件做状态比较
+        col_num = 1
+        nowPath = ".."
+        self.fileList = []
+        self.titleList.delete(2, END)
+        for info in fileList:
+            filename = info["name"]
+            if filename.startswith("."): continue
+            col_num += 1
+            col_data = rowShow(self.titleDef, self.col_len_l, info,
+                               localDir)
+            self.titleList.insert(col_num, col_data)
+            self.fileList.append(info)
+
+
 class InfoTab():
     def __init__(self, root):
         self.name = "状态信息"
@@ -242,9 +260,7 @@ class SetupTab(PTab):
         # 设定终端名称
         self.clientNameVal = StringVar()
         hostname = socket.getfqdn(socket.gethostname())
-        hostname = hostname.replace(".", "_")
-        hostname = hostname.replace("-", "_")
-        hostname = hostname.replace(" ", "_")
+        hostname = re.sub('[ .-]', "_", hostname).strip()
         if not self.clientNameVal.get():
             self.clientNameVal.set(hostname[:10])
             self.clientNameInit = hostname[:10]
@@ -285,6 +301,7 @@ class SetupTab(PTab):
 
         # 设定同步文件夹
         self.syncFolderVal = StringVar()
+        self.root.syncFolderVal = self.syncFolderVal
         if not self.syncFolderVal.get():
             self.syncFolderVal.set(sys.path[0] + os.sep + "sync_" + self.clientNameVal.get())
 
@@ -575,20 +592,7 @@ class DownloadTab(PTab):
 
 
 
-    def showFilelist(self, fileList):
-        col_num = 1
-        nowPath = ".."
-        self.fileList = []
-        self.titleList.delete(2, END)
-        for info in fileList:
-            filename = info["name"]
-            if filename.startswith("."): continue
-            col_num += 1
-            col_data = rowShow(self.titleDef, self.col_len_l, info,
-                               self.root.myClient.clientInfo["downloadFolderVal"])
-            self.titleList.insert(col_num, col_data)
-            self.fileList.append(info)
-        print(self.fileList)
+
 
     def fileChoosed(self, event):
         w = event.widget
@@ -613,7 +617,7 @@ class DownloadTab(PTab):
         clientName = self.connClientVal.get()
         client = self.root.myCmd.do_getClient(clientName, self.connClientPWDVal.get())
 
-        self.showFilelist(client["fileList"])
+        self.showFilelist(client["fileList"],self.root.myClient.clientInfo["downloadFolderVal"])
         self.remoteDirVal.set(client["downloadFolderVal"])
 
     def enterRemoteFolder(self, dirName):
@@ -634,7 +638,7 @@ class DownloadTab(PTab):
 
         client = self.root.myCmd.do_cd(dirName, self.root.myClient.clientName, self.connClientVal.get(),
                                        self.connClientPWDVal.get())
-        self.showFilelist(client["fileList"])
+        self.showFilelist(client["fileList"], self.root.myClient.clientInfo["downloadFolderVal"])
 
 
 class SyncTab(PTab):
@@ -643,29 +647,207 @@ class SyncTab(PTab):
         PTab.__init__(self, root, self.name)
 
     def fill(self):
-        self.clientNameVal = StringVar()
-        hostname = socket.getfqdn(socket.gethostname())
-        hostname = hostname.replace(".", "_")
-        hostname = hostname.replace("-", "_")
 
-        self.clientNameVal.set(hostname[:10])
-        self.downloadFolderVal = StringVar()
-        self.downloadFolderVal.set(sys.path[0] + os.sep + self.clientNameVal.get())
-        self.syncFolderVal = StringVar()
-        self.syncFolderVal.set(sys.path[0] + os.sep + "sync_" + self.clientNameVal.get())
-
-        helpX = self.lSpace + 58 * self.lSpace
-        # 设定终端名称
         rowY = self.top + self.hSpace
-        self.clientName_l = ttk.Label(self.tab, text='同步名称:', style="basic.TLabel")
-        self.clientName_l.place(x=self.lSpace, y=rowY)
+        rowX =self.lSpace
+        self.syncFolder_l = ttk.Label(self.tab, text='本机同步文件夹：' + 2*" ", style="basic.TLabel")
+        self.syncFolder_l.place(x=rowX, y=rowY)
 
-        self.clientName = ttk.Entry(self.tab, style='basic.TEntry',
-                                    textvariable=self.clientNameVal)
-        self.clientName.place(x=self.lSpace + 10 * self.lSpace, y=rowY)
+        rowX += self.syncFolder_l.winfo_reqwidth() + 10
+        self.syncFolder = ttk.Entry(self.tab, style='basic.TEntry',
+                                    textvariable=self.root.syncFolderVal, width=50, state=DISABLED)
+        self.syncFolder.place(x=rowX, y=rowY)
 
-        self.clientName_help = ttk.Label(self.tab, text='【作为远程访问的标识】', style="basic.TLabel")
-        self.clientName_help.place(x=helpX, y=rowY)
+        rowX += self.syncFolder.winfo_reqwidth() + 10
+        self.syncFolderIntro_l = ttk.Label(self.tab, text='【说明】 请将需要同步的文件拷入此文件夹', style="basic.TLabel")
+        self.syncFolderIntro_l.place(x=rowX, y=rowY)
+
+        # 查看待上传文件按钮
+
+        rowY += self.syncFolder_l.winfo_reqheight() + 20
+        rowX = self.lSpace
+
+        self.viewUploadBtn = ttk.Button(self.tab, style="basic.TButton",
+                                        text="查看本机待上传文件",
+                                        command=lambda: self.viewSyncFiles('upload'))
+        self.viewUploadBtn.place(x=rowX, y=rowY)
+
+        # 查看待下载文件按钮
+        rowX += self.viewUploadBtn.winfo_reqwidth() + 10
+        self.viewDownloadBtn = ttk.Button(self.tab, style="basic.TButton",
+                                        text="查看远程待下载文件",
+                                        command=lambda: self.viewSyncFiles('download'))
+        self.viewDownloadBtn.place(x=rowX, y=rowY)
+
+        # 查看待本机同步文件按钮
+        rowX += self.viewDownloadBtn.winfo_reqwidth() + 10
+        self.viewLocalBtn = ttk.Button(self.tab, style="basic.TButton",
+                                        text="查看本机同步文件夹",
+                                        command=lambda: self.viewSyncFiles('local'))
+        self.viewLocalBtn.place(x=rowX, y=rowY)
+
+        # 查看待本机同步文件按钮
+        rowX += self.viewLocalBtn.winfo_reqwidth() + 10
+        self.syncRenewBtn = ttk.Button(self.tab, style="basic.TButton",
+                                        text="刷新同步信息",
+                                        command=lambda: self.syncRenew())
+        self.syncRenewBtn.place(x=rowX, y=rowY)
+
+        #说明
+        rowY += self.syncRenewBtn.winfo_reqheight() + 10
+        rowX =self.lSpace
+        self.syncIntro_l = ttk.Label(self.tab, foreground='blue', text="【本机待上传文件】：以下文件修改时间较新，需要上传同步 ", style="basic.TLabel")
+        self.syncIntro_l.place(x=rowX, y=rowY)
+
+        #文件列表
+        rowY += self.syncIntro_l.winfo_reqheight() + 10
+        rowX =self.lSpace
+
+
+        self.titleList = Listbox(self.tab, fg='black', bg='lightgray', font=("黑体", -10), relief=GROOVE,
+                                 width=150, height=20, activestyle='dotbox')
+
+        self.titleList.place(x=rowX, y=rowY)
+
+        yscrollbar = Scrollbar(self.titleList, command=self.titleList.yview)
+        yscrollbar.place(x=rowX + self.titleList.winfo_reqwidth() , y=rowY)
+        self.titleList.config(yscrollcommand=yscrollbar.set)
+
+        self.titleList.bind("<Double-Button-1>", self.fileChoosed)
+
+        # 显示标题###########
+        col_num = 1
+
+        self.titleDef = [("名称", 16, "name"), ("所在目录", 6, "folderName"), ("类型", 5, "ext"), ("大小", 5, "size"), ("修改时间", 8, "mtime"),
+                         ("创建时间", 8, "ctime"), ("本地状态", 5, "state")]
+
+        self.title, self.col_len_l = rowTitle(self.titleDef)
+
+        self.titleList.insert(col_num, self.title)
+
+        col_num += 1
+        self.titleList.insert(col_num, lenUtf(self.title) * "-" + "\n")
+
+        # 同步按钮
+        rowX = self.lSpace
+        rowY += self.titleList.winfo_reqheight() + 20
+        self.uploadBtn = ttk.Button(self.tab, style="basic.TButton",
+                                        text="全部上传同步",
+                                        command=lambda: self.syncFiles('upload'))
+        self.uploadBtn.place(x=rowX, y=rowY)
+
+        rowX += self.uploadBtn.winfo_reqwidth() + 20
+        self.downloadBtn = ttk.Button(self.tab, style="basic.TButton",
+                                        text="全部下载同步",
+                                        command=lambda: self.syncFiles('download'))
+        self.downloadBtn.place(x=rowX, y=rowY)
+
+        rowX += self.downloadBtn.winfo_reqwidth() + 20
+        self.syncAllBtn = ttk.Button(self.tab, style="basic.TButton",
+                                        text="一键同步【上传+下载】",
+                                        command=lambda: self.syncFiles('syncAll'))
+        self.syncAllBtn.place(x=rowX, y=rowY)
+
+        # 显示进度条
+        rowX = self.lSpace
+        rowY += self.syncAllBtn.winfo_reqheight() + 10
+
+        self.syncProgressBarVal = DoubleVar()
+
+        self.syncProgressBar_l = ttk.Label(self.tab, text='执行进度:' + ' ' * 10, style='basic.TLabel')
+        self.syncProgressBar_l.place(x=rowX, y=rowY)
+
+        rowX += self.syncProgressBar_l.winfo_reqwidth() + 5
+        self.syncProgressBar = ttk.Progressbar(self.tab, variable=self.syncProgressBarVal, length='400', mode='determinate')
+        self.syncProgressBar.place(x=rowX, y=rowY)
+        self.root.syncProgressBar = self.syncProgressBar
+        self.root.syncProgressBarVal = self.syncProgressBarVal
+        self.syncProgressBarVal.set(0)
+
+        rowY += self.syncProgressBar.winfo_reqheight() + 5
+        self.syncProgressInfo_l = ttk.Label(self.tab, text=' ' * 15, style='basic.TLabel', foreground='gray', font=("黑体", -10))
+        self.syncProgressInfo_l.place(x=rowX, y=rowY)
+        self.root.syncProgressInfo_l = self.syncProgressInfo_l
+
+       # 显示批量传送进度条
+        rowX = self.lSpace
+        rowY += self.syncProgressInfo_l.winfo_reqheight() + 5
+
+        self.syncAllProgressBarVal = DoubleVar()
+
+        self.syncAllProgressBar_l = ttk.Label(self.tab, text='整体执行进度:' + ' ' * 6, style='basic.TLabel')
+        self.syncAllProgressBar_l.place(x=rowX, y=rowY)
+
+        rowX += self.syncAllProgressBar_l.winfo_reqwidth() + 5
+        self.syncAllProgressBar = ttk.Progressbar(self.tab, variable=self.syncAllProgressBarVal, length='400', mode='determinate')
+        self.syncAllProgressBar.place(x=rowX, y=rowY)
+        self.root.syncAllProgressBar = self.syncProgressBar
+        self.root.syncAllProgressBarVal = self.syncAllProgressBarVal
+        self.syncAllProgressBarVal.set(0)
+
+        rowY += self.syncAllProgressBar.winfo_reqheight() + 5
+        self.syncAllProgressInfo_l = ttk.Label(self.tab, text=' ' * 15, style='basic.TLabel', foreground='gray', font=("黑体", -10))
+        self.syncAllProgressInfo_l.place(x=rowX, y=rowY)
+        self.root.syncAllProgressInfo_l = self.syncAllProgressInfo_l
+
+
+    def viewSyncFiles(self, typeStr):
+        self.root.syncListSelected = typeStr
+        if typeStr == "upload":
+            self.showFilelist(self.root.upload_files)
+            self.syncIntro_l["text"] = '【本机待上传文件】：以下文件修改时间较新，需要上传同步 '
+        elif typeStr == "download":
+            self.showFilelist(self.root.download_files)
+            self.syncIntro_l["text"] = '【远程待下载文件】：以下文件本机缺失或版本较旧，需要下载同步 '
+        elif typeStr == "local":
+            #self.showFilelist(makeFileList(self.root.syncFolderVal.get()))
+            self.showFilelist(self.root.upload_files + self.root.same_files)
+            self.syncIntro_l["text"] = '【本机同步文件夹】：以下文件本机同步文件夹中内容，请将需要同步的文件拷入'
+
+    def syncRenew(self):
+        self.root.myCmd.do_versionCheck()
+        self.viewSyncFiles("upload")
+
+    def syncFiles(self,typeStr):
+        self.root.syncListSelected = "local"
+        if typeStr == "download":
+            self.root.myCmd.do_syncDownloadAll()
+        elif typeStr == "upload":
+            self.root.myCmd.do_syncUploadAll()
+        elif typeStr == "syncAll":
+            self.root.syncListSelected = "syncAll"
+            self.root.myCmd.do_syncAll()
+
+        self.root.myCmd.do_versionCheck()
+        self.viewSyncFiles("local")
+
+    def fileChoosed(self, event):
+        w = event.widget
+        line = w.curselection()
+        if line[0] < 2:
+            self.info("选择错误")
+            return
+        info = self.fileList[line[0] - 2]
+
+        # 处理文件上传、下载
+        if info["state"] == "远程较新" or info["state"] == "本地尚无": #download
+            yesno = messagebox.askyesno('提示', '要下载文件{}吗'.format(info["name"]))
+            if yesno:
+                self.root.myCmd.do_syncDownload(info)
+        elif info["state"] == "本地新建" or info["state"] == "本地较新":   #upload
+            yesno = messagebox.askyesno('提示', '要上传文件{}至服务器同步文件夹吗'.format(info["name"]))
+            if yesno:
+                self.root.myCmd.do_syncUpload(info)
+        elif info["state"] == "已作同步":
+            messagebox.showwarning('提示', '文件{}已进行过同步，本地与远程信息一致'.format(info["name"]))
+
+        self.root.myCmd.do_versionCheck()
+        self.viewSyncFiles(self.root.syncListSelected)
+
+
+
+
+
 
 
 r = Root((800, 600))
