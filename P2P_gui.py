@@ -20,6 +20,7 @@ import json
 import traceback
 from functools import wraps
 import webbrowser
+from p2pClient import VERSION
 
 
 
@@ -83,40 +84,6 @@ class Root():
         self.style.configure("basic.TCombobox", foreground="black", background="lightgray", relief=GROOVE,
                              font=font_text)
 
-    def connServer(self):
-        setupTab = self.widgets.tabs[2]
-        downloadTab = self.widgets.tabs[1]
-        print(downloadTab.name)
-        clientName = setupTab.clientNameVal.get()
-        self.clientName = clientName
-        if not clientName or clientName == "":
-            self.PTab.info("终端名称为空，无法连接远程设备")
-            return 0
-        else:
-            try:
-                if not self.myClient or not self.myCmd or clientName != setupTab.clientNameInit:
-                    self.myClient, self.myCmd = p2pCmd.gui_main(setupTab)
-                    self.myClient.root = self
-                    self.myCmd.root = self
-                else:
-                    self.myClient.clientName = clientName
-                    self.myClient.updateClientInfo()
-
-            except Exception as e:
-                self.PTab.info("连接远程设备出错，请检查配置信息 出错信息:" + str(e))
-                traceback.print_exc()
-                return 0
-            self.PTab.info("连接成功，可以传输或同步文件")
-            # 获取客户端列表
-            i = 0
-            clientList = self.myCmd.do_getCl()
-
-            downloadTab.show()
-            downloadTab.connClient["values"] = tuple(clientList.keys())
-            downloadTab.connClient.current(1)
-            self.notebook.select(1)
-            return 1
-
     def login(self): #登录处理
         infoTab = InfoTab(self)
         syncTab = SyncTab(self)
@@ -165,8 +132,6 @@ class Root():
                         self.PTab.info("连接失败，用户名密码错误!")
                         return 0
 
-
-
                 else:   #更新信息
                     self.myClient.clientName = clientName
                     self.myClient.updateClientInfo()
@@ -184,6 +149,7 @@ class Root():
                 return 0
             self.PTab.info("连接成功，可以传输或同步文件")
             self.checkVer()
+            self.connected = True
             return 1
 
     def checkVer(self):
@@ -352,6 +318,11 @@ class HelpTab(PTab):
         intros = self.root.myCmd.do_getIntro()
         for i in intros:
             self.text.insert(INSERT, i)
+
+        self.text.insert(INSERT, "\\n"*4)
+        self.text.insert(INSERT, "【当前用户】 {} \\n".format(self.root.clientName))
+        self.text.insert(INSERT, "【当前版本】 {} \\n".format(VERSION))
+
 
         self.text["state"] = DISABLED
 
@@ -588,7 +559,9 @@ class SetupTab(PTab):
             with open(getMacAdr() + ".info", "w") as f:
                 json.dump(json.dumps(data, indent=4), f)
             self.info("设置信息更新成功")
-            self.root.connServer()
+            self.root.connectServer()
+            self.root.widgets.tabs[1].show()
+
 
     def readInfo(self):  # 读入设置信息
         if isfile(getMacAdr() + ".info"):
@@ -761,13 +734,12 @@ class DownloadTab(PTab):
 
 
 
-
+    def show(self):
+        self.fill()
+        self.root.notebook.select(1)
         clientList = self.root.myCmd.do_getCl()
         self.connClient["values"] = tuple(clientList.keys())
         self.connClient.current(1)
-
-
-
 
 
     def fileChoosed(self, event):
@@ -777,7 +749,6 @@ class DownloadTab(PTab):
             self.info("选择错误")
             return
         info = self.fileList[line[0] - 2]
-        print(w.bbox(line))
 
         if info["isdir"]:  # 处理目录
             self.remoteDirVal.set(info["path"])
@@ -982,6 +953,13 @@ class SyncTab(PTab):
         self.syncAllProgressInfo_l = ttk.Label(self.tab, text=' ' * 15, style='basic.TLabel', foreground='gray', font=("黑体", -10))
         self.syncAllProgressInfo_l.place(x=rowX, y=rowY)
         self.root.syncAllProgressInfo_l = self.syncAllProgressInfo_l
+
+    def show(self):
+        self.root.notebook.select(self.root.tabIndexes["同步"])
+        self.fill()
+        self.root.myCmd.do_versionCheck()
+        self.viewSyncFiles("upload")
+        self.root.notebook.select(0)
 
 
     def viewSyncFiles(self, typeStr):

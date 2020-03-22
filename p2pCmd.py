@@ -313,8 +313,6 @@ class MyCmd(Cmd):
     @catchRpcEx
     def do_getCl(self, args=None):
         cl = self.proxy.getClientList()
-        for c in cl.keys():
-            print(c)
         return cl
 
     def do_getHost(self, args):
