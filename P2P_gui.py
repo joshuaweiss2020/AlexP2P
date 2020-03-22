@@ -314,14 +314,15 @@ class HelpTab(PTab):
         self.text = Text(self.tab, width=100, height=30, bg='lightgray' ,fg="black", font=("黑体", -12))
 
         self.text.place(x=5,y=5)
-        self.text.insert(INSERT, "AlexP2P 文件同步传输\n For Alex & Queena \n")
+        # self.text.insert(INSERT, "AlexP2P 文件同步传输\n For Alex & Queena \n\n")
+
         intros = self.root.myCmd.do_getIntro()
         for i in intros:
             self.text.insert(INSERT, i)
 
-        self.text.insert(INSERT, "\\n"*4)
-        self.text.insert(INSERT, "【当前用户】 {} \\n".format(self.root.clientName))
-        self.text.insert(INSERT, "【当前版本】 {} \\n".format(VERSION))
+        self.text.insert(INSERT, "\n"*4)
+        self.text.insert(INSERT, "【当前用户】 {} \n".format(self.root.clientName))
+        self.text.insert(INSERT, "【当前版本】 {} \n".format(VERSION))
 
 
         self.text["state"] = DISABLED
