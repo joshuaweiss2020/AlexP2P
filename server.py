@@ -11,6 +11,7 @@ from myUtils import *
 from p2pClient import MyClient, URL
 import re
 import sys
+import json
 
 OK = 1
 FAIL = 2
@@ -20,6 +21,7 @@ SimpleXMLRPCServer.allow_reuse_address = 1
 UNHANDLED = 100
 ACCESS_DENIED = 200
 SERVER_START_PATH = "C:\\AlexP2P\\"
+VERSION = 1.0
 
 
 
@@ -45,8 +47,7 @@ class MyCmd:
         self.id = id
 
 
-def ilog(*args, show=0):
-    print(*args)
+
 
 
 def get_port(url):  # 从URL中提取port
@@ -85,6 +86,11 @@ class MyServer:
         self.trans_ok = 0
         self.break_out = 0
         self.startPath = SERVER_START_PATH
+        self.logger = logInit("server.log")
+
+    def ilog(self, *args, show=0):
+        msg = re.sub(r"\(|\)|,|'", '', str(args))
+        self.logger.info(msg)
 
     @rpcEx
     def _start(self):
@@ -101,8 +107,8 @@ class MyServer:
     def updateClient(self, name, clientInfo):  # 客户端信息更新
         self.clients[name] = clientInfo
         self.updateClientStamp(name)
-        # ilog(clientInfo["clientNameVal"], self.server.get_request()[1], " 已更新信息.....", nowStr())
-        ilog(clientInfo["clientNameVal"], " 已更新信息.....", nowStr())
+        # self.ilog(clientInfo["clientNameVal"], self.server.get_request()[1], " 已更新信息.....", nowStr())
+        self.ilog(clientInfo["clientNameVal"], " 已更新信息.....", nowStr())
         return 1
 
     def updateClientStamp(self, name):  # 更新时间戳
@@ -119,12 +125,11 @@ class MyServer:
                 os.makedirs(join(pathStr, "sync"))
 
             self.updateClient(name, clientInfo)
-            ilog(clientInfo["clientNameVal"], " 已注册.....", nowStr())
+            self.ilog(clientInfo["clientNameVal"], " 已注册.....", nowStr())
             return 1
         else:
-            ilog(clientInfo["clientNameVal"], " 名称已存在，请更换名称.....", nowStr())
-            raise Fault(2, "名称已存在，请更换名称")
-            return 0
+            self.ilog(clientInfo["clientNameVal"], " 名称已存在，请更换名称.....", nowStr())
+            raise Fault(2, clientInfo["clientNameVal"] + "服务器已有连接")
 
     def changeDir(self, fromW, SendW, dirName):  # 改变client当前目录
         cmd = MyCmd(fromW, SendW, 'changeDir', [dirName])
@@ -148,7 +153,7 @@ class MyServer:
             clientName = client["clientNameVal"]
             if time.time() - client["stamp"] > 5 * 60:  # 5分钟
                 del self.clients[clientName]
-                ilog(client["clientNameVal"], " 连接超时，从清单清除.....", nowStr())
+                self.ilog(client["clientNameVal"], " 连接超时，从清单清除.....", nowStr())
         return self.clients
 
     def getCmd(self, name):  # 获取待执行任务
@@ -186,12 +191,12 @@ class MyServer:
 
     @rpcEx
     def sendFileToServer(self, data, filename, fromW=None, syncPath="download"):  # 向服务器发送文件 sendType 标记下载 或同步
-        if data.data == b'':
+        if data.data == b'': #处理空文件
             data.data = b' '
         pathStr = join(self.startPath, "userData", self.clients[fromW]["macAddr"] + "_" + fromW)
 
         syncPath = re.sub('^[\\\/]', '', syncPath)  # 去掉开头的\或/
-        pathStr = join(pathStr, 'sync', syncPath)
+        pathStr = join(pathStr, syncPath)
         if not path.exists(pathStr):
             os.makedirs(pathStr, exist_ok=True)
 
@@ -199,7 +204,7 @@ class MyServer:
         f.write(data.data)
         f.close()
         self.trans_ok = 1
-        ilog("已保存远端上传文件{}到{}".format(filename,pathStr))
+        self.ilog("已保存远端上传文件{}到{}".format(filename,pathStr))
         return 1
 
     def noticeToGetFile(self, fromW, sendW, filename):
@@ -211,6 +216,37 @@ class MyServer:
     def getFileFromServer(self, filename, dirName,typeStr="download"):
         self.query(filename, PASSWORD, dirName , typeStr)
         return 0
+
+
+    def checkLogin(self,clientName,macAddr,clientPW): # 从info文件核对密码，判断能否连接
+        pathStr = join(self.startPath, "userData", macAddr + "_" + clientName,macAddr+".info")
+        if not path.exists(pathStr):
+            return -1
+        else:
+            with open(pathStr) as f:
+                data = json.loads(json.load(f))
+                self.ilog("核对{}的密码:{},传入：{}".format(clientName,data["passwordVal"],clientPW))
+            if data["passwordVal"] == clientPW:
+                return 1
+            else:
+                return 0
+
+    def checkVer(self,versionNo): #核对软件版本
+        self.ilog("核对版本，服务器{},客户端{}".format(VERSION,versionNo))
+        if versionNo < VERSION:
+            return -1
+        else:
+            return 1
+
+    def getIntro(self): #读取帮助信息
+            pathStr = join(self.startPath, "help.txt")
+            intro = []
+            with open(pathStr, 'r', encoding='utf-8') as f:
+                intro = f.readlines()
+            return intro
+
+
+
 
     def _handle(self, query):
         dir = self.dirname
@@ -226,7 +262,7 @@ class MyServer:
         pathStr = join(self.startPath, "userData", self.clients[clientName]["macAddr"] + "_" + clientName)
 
         pathStr = join(pathStr, syncPath, filename)
-
+        self.ilog("读取文件：", pathStr)
         return Binary(open(pathStr, 'rb').read())
 
     @rpcEx

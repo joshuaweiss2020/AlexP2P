@@ -9,11 +9,11 @@ from tkinter import StringVar, IntVar
 
 # s = ServerProxy('http://106.13.113.252:9001')
 
-URL = "http://106.13.113.252:9001"
+#URL = "http://106.13.113.252:9001"
 
 
-#URL = "http://127.0.0.1:2001"
-
+URL = "http://127.0.0.1:2001"
+VERSION = 1.0
 
 
 class MyClient:
@@ -94,7 +94,7 @@ class MyClient:
             elif cmd["cmdC"] == "changeDir":
                 # self.dirName = cmd["args"][0]
                 self.updateClientInfo(cmd)
-                self.mPrint("changeDir successfully ,dir:", self.dirName)
+                self.mPrint("切换目录成功，当前目录:", self.dirName)
             elif cmd["cmdC"] == "info":
                 info = cmd["args"][0]
                 self.mPrint("Info From ", cmd["fromW"], ":", info)
@@ -102,9 +102,10 @@ class MyClient:
                 self.mPrint(cmd)
         return "checking cmds " + time.strftime("%Y%m%d %H:%M:%S", time.localtime())
 
-    def getFileData(self, filename):
-
-        return Binary(open(join(self.dirName, filename), 'rb').read())
+    def getFileData(self, filename,dirName=None):
+        if not dirName:
+            dirName = self.dirName
+        return Binary(open(join(dirName, filename), 'rb').read())
 
     def updateClientInfo(self, cmd=None):
         dirName=""
@@ -118,7 +119,7 @@ class MyClient:
             # self.clientInfo["downloadFolderVal"] = dirName
             self.proxy.updateClient(self.clientName, self.clientInfo)
         except FileNotFoundError as e:
-            self.proxy.sendInfo(self.clientName, cmd["fromW"], dirName + " dir cann't find! Still in " + self.dirName)
+            self.proxy.sendInfo(self.clientName, cmd["fromW"], dirName + " 目录未找到，返回原目录 " + self.dirName)
 
     def saveFileInClient(self, data, filename ,syncDir=None):
         if syncDir == None: # 下载

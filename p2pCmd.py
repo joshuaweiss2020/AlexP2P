@@ -7,7 +7,7 @@ from time import sleep
 import os
 import re
 from os.path import join, isfile
-from p2pClient import URL, MyClient
+from p2pClient import URL, MyClient,VERSION
 from myUtils import *
 import server
 
@@ -193,7 +193,7 @@ class MyCmd(Cmd):
         self.root.syncProgressInfo_l["text"] = nowStr() + " 开始向服务器同步文件夹上传文件{}".format(filename)
         self.root.syncAllProgressBar.update()
 
-        self.proxy.sendFileToServer(data, filename, self.clientName, syncDir)
+        self.proxy.sendFileToServer(data, filename, self.clientName, join("sync",syncDir))
         self.root.syncProgressBarVal.set(100)
         self.root.syncProgressInfo_l["text"] = nowStr() + " 文件{}上传同步成功！".format(filename)
 
@@ -243,6 +243,25 @@ class MyCmd(Cmd):
 
         self.mPrint(" 同步文件全部已完成( 上传：{} 下载：{} )".format(len(self.root.upload_files),len(self.root.download_files)))
 
+
+    def do_saveSetupInServer(self): # 在服务器上保存配置信息
+        # 保存配置文件
+        infoFileName = getMacAdr() + ".info"
+        data = self.root.myClient.getFileData(infoFileName, ".")
+        rs = self.proxy.sendFileToServer(data, infoFileName, self.clientName, ".")
+        return rs
+
+
+    def do_checkLogin(self,clientPW):
+        return self.proxy.checkLogin(self.clientName, getMacAdr() , clientPW)
+
+
+    def do_checkVer(self):
+        return self.proxy.checkVer(VERSION)
+
+    def do_getIntro(self):
+        return self.proxy.getIntro()
+
     def do_get(self, arg):
         filename = arg
         if self.host == self.clientName:
@@ -260,7 +279,7 @@ class MyCmd(Cmd):
 
         # self.mPrint(self.clientName,clientName,dirName)
         self.proxy.changeDir(fromW, toW, dirName)
-        self.mPrint("Start to change ", toW, " dir to ", dirName, "...")
+        self.mPrint("开始进入远程终端 ", toW, " 的目录： ", dirName, "...")
 
         setProgressBar(self.root.progressBar, 4, 100)
 
@@ -289,7 +308,7 @@ class MyCmd(Cmd):
         if clientPassword.strip() == connPwd.strip():
             return client
         else:
-            raise MyException("密码:{} 有误，无法连接{},{}".format(connPwd, clientName, clientPassword.strip()))
+            raise MyException("密码:{} 有误，无法连接{}{}".format(connPwd, clientName, "PP"+clientPassword.strip()))
 
     @catchRpcEx
     def do_getCl(self, args=None):
@@ -314,9 +333,7 @@ class MyCmd(Cmd):
         msg = re.sub(r"\(|\)|,|'", '', str(args))
         if self.root:
             self.root.infoList.insert(1.0, nowStr() + " " + msg + "...\n")
-            print(*args)
-        else:
-            print(*args)
+        self.root.logger.info(msg)
 
 
 def main():

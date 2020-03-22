@@ -234,9 +234,20 @@ p = re.sub('^[\\\/]','',p)
 print(p)
 #dir = os.path.dirname(path)
 
+
 #
 # os.makedirs(dir, exist_ok=True)
 # with open(path, 'wb') as f:
 #    f.write(data)
 p = "远程办公三足鼎立，飞书能否后来居上，拳打钉钉脚{}...".format("dd")
 print(p)
+
+
+l = logInit("D:\\AlexP2P\\test.log")
+
+l.info("日志")
+
+def aaa(*arg):
+    print(arg)
+
+aaa(4,"d","ddd")

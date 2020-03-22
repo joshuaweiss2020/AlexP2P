@@ -7,6 +7,9 @@ import traceback
 import os
 
 
+import logging
+
+
 class MyException(Exception):
     def __init__(self, msg):
         Exception.__init__(self, msg)
@@ -15,6 +18,24 @@ class MyException(Exception):
     def __str__(self):
         return "自定义异常：" + self.msg
 
+
+def logInit(logPath):
+    # 创建一个logging对象
+    logger = logging.getLogger()
+    # 创建一个文件对象  创建一个文件对象,以UTF-8 的形式写入 标配版.log 文件中
+    fh = logging.FileHandler(logPath, encoding='utf-8')
+    # 创建一个屏幕对象
+    sh = logging.StreamHandler()
+    # 配置显示格式  可以设置两个配置格式  分别绑定到文件和屏幕上
+    formatter = logging.Formatter('%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s')
+    fh.setFormatter(formatter)  # 将格式绑定到两个对象上
+    sh.setFormatter(formatter)
+    logger.addHandler(fh)  # 将两个句柄绑定到logger
+    logger.addHandler(sh)
+    logger.setLevel(10)  # 总开关
+    fh.setLevel(10)  # 写入文件的从10开始
+    sh.setLevel(10)  # 在屏幕显示的从30开始
+    return logger
 
 def deb(fn):  # 用于调试的装饰器函数
     def debugPrint(*args, **kwargs):
@@ -160,7 +181,7 @@ def fileInfo(filename, dirname=""):
 
         info["ctime"] = timeStr(path.getctime(info["path"]))
 
-        info["state"] = "状态比较"
+        info["state"] = "本地文件"
 
         return info
     else:

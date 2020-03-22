@@ -19,10 +19,13 @@ import socket
 import json
 import traceback
 from functools import wraps
+import webbrowser
+
 
 
 class Root():
     def __init__(self, shape):  # shape为长*宽元组
+        self.logger = logInit("alexP2PClient.log")
         self.wnd = Tk()
         self.shape = shape
         self.wnd.title("Alex P2P 文件传送器")
@@ -32,6 +35,9 @@ class Root():
             shape[0], shape[1], (screenwidth - shape[0]) / 2, (screenheight - shape[1]) / 2)  # 屏幕居中
         self.wnd.geometry(alignstr)
         self.wnd.resizable(width=False, height=False)
+
+        self.tabIndexes = {"帮助": 3, "设置": 2, "传输": 1, "同步": 0}
+
         self.notebook = ttk.Notebook(self.wnd, width=self.shape[0], height=self.shape[1], style="basic.TNotebook", )
         self.notebook.pack()
         self.notebook.bind("<<NotebookTabChanged>>", self.tabChoosed)
@@ -46,6 +52,7 @@ class Root():
         self.syncProgressInfo_l, self.progressInfo_l = None, None
         self.upload_files, self.download_files, self.same_files = None, None, None
         self.syncListSelected = None
+        self.connected = False
 
         self.style = ttk.Style()
         self.initStyles()
@@ -53,10 +60,14 @@ class Root():
     def tabChoosed(self, *args):
         tabId = self.notebook.select()
         index = self.notebook.index(tabId)
-        self.widgets.tabs[index].show()
-        if index==2:
-            self.myCmd.do_versionCheck()
-            self.widgets.tabs[index].viewSyncFiles("upload")
+        if not self.connected:
+            messagebox.showerror('连接错误', '未连接服务器，请检查网络、代理服务器，修改后连接')
+            self.widgets.tabs[2].show()
+        else:
+            self.widgets.tabs[index].show()
+        # if index == 0:
+        #     self.myCmd.do_versionCheck()
+        #     self.widgets.tabs[index].viewSyncFiles("upload")
 
     def initStyles(self):
         self.font_label = 12
@@ -73,7 +84,7 @@ class Root():
                              font=font_text)
 
     def connServer(self):
-        setupTab = self.widgets.tabs[0]
+        setupTab = self.widgets.tabs[2]
         downloadTab = self.widgets.tabs[1]
         print(downloadTab.name)
         clientName = setupTab.clientNameVal.get()
@@ -103,15 +114,98 @@ class Root():
             downloadTab.show()
             downloadTab.connClient["values"] = tuple(clientList.keys())
             downloadTab.connClient.current(1)
-
             self.notebook.select(1)
-
             return 1
+
+    def login(self): #登录处理
+        infoTab = InfoTab(self)
+        syncTab = SyncTab(self)
+        downloadTab = DownloadTab(self)
+        setupTab = SetupTab(self)
+        helpTab = HelpTab(self)
+
+        if not isfile(getMacAdr() + ".info"): #初次使用
+            self.notebook.select(self.tabIndexes["设置"])
+            setupTab.fill()
+        else:
+            setupTab.show()  #fill & readfile
+            if self.connectServer() == 1:
+                self.connected = True
+                self.notebook.select(self.tabIndexes["同步"])
+                syncTab.show()
+                self.myCmd.do_versionCheck()
+                syncTab.viewSyncFiles("upload")
+            else:
+                self.connected = False
+                self.notebook.select(self.tabIndexes["设置"])
+
+    def connectServer(self):
+        setupTab = self.widgets.tabs[2]
+        clientName = setupTab.clientNameVal.get()
+        self.clientName = clientName
+        if not clientName or clientName == "":
+            self.PTab.info("终端名称为空，无法连接远程设备")
+            return 0
+        else:
+            try:
+                if not self.myClient or not self.myCmd or clientName != setupTab.clientNameInit: #首次登录
+                    self.myClient, self.myCmd = p2pCmd.gui_main(setupTab)
+                    self.myClient.root = self
+                    self.myCmd.root = self
+                    #保存配置文件
+                    rs = self.myCmd.do_checkLogin(setupTab.passwordVal.get())
+                    if rs == -1: # 首次在服务器上注册
+                        self.myCmd.do_saveSetupInServer()
+                        self.PTab.info("已完成首次注册!")
+                    elif rs == 1:
+                        self.PTab.info("用户名密码验证通过!")
+                    elif rs == 0:
+                        messagebox.showerror('连接错误', '无法连接服务器，请检查用户名：{} 及密码：{}'
+                                             .format(self.clientName,setupTab.passwordVal.get()))
+                        self.PTab.info("连接失败，用户名密码错误!")
+                        return 0
+
+
+
+                else:   #更新信息
+                    self.myClient.clientName = clientName
+                    self.myClient.updateClientInfo()
+
+            except Fault as f:
+                if f.faultCode == 2:
+                    self.PTab.info("重新连接 " + f.faultString)
+                    return 1
+                else:
+                    raise f
+            except Exception as e:
+                self.PTab.info("连接远程设备出错，请检查配置信息 出错信息:" + str(e))
+                messagebox.showerror('连接错误', '无法连接服务器，请检查网络、代理服务器')
+                traceback.print_exc()
+                return 0
+            self.PTab.info("连接成功，可以传输或同步文件")
+            self.checkVer()
+            return 1
+
+    def checkVer(self):
+        rs = self.myCmd.do_checkVer()
+        self.logger.info("核对版本，结果:{}".format(rs))
+        if rs == -1:
+            yesno = messagebox.askyesno('提示', '当前版本较旧是否下载新版本？')
+            if yesno:
+                webbrowser.open("http://106.13.113.252")
+                return
+        return rs
+
+
+
+
+
+
 
 
 class Widgets():  # Widgets= PButton+PTab
     def __init__(self, root):
-        self.names = {"设置": 0, "传输": 1, "同步": 2}
+        self.names = {"设置": 0, "传输": 1, "同步": 2, "帮助": 3}
         self.buttons = []
         self.tabs = []
 
@@ -175,6 +269,7 @@ class PTab():
         self.readInfo()
 
     def info(self, msg):
+        self.root.logger.info(msg)
         self.root.infoList.insert(1.0, nowStr() + " " + msg + "...\n")
 
     def showEx(self):  # 用于在GUI中显示异常信息的装饰器
@@ -240,14 +335,26 @@ class InfoTab():
 
         self.root.infoList.insert(1.0, nowStr() + " 欢迎使用Alex P2P 文件传送器\n")
 
-        # h = self.infoList.winfo_reqwidth()
-        # print("h",h)
-        # h = self.root.infoList.winfo_width()
-        # print("h", h)
-
-        # self.infoFrame.configure(height=h)
         self.infoFrame.place(x=0, y=rowY)
         self.infoList.pack()
+
+class HelpTab(PTab):
+    def __init__(self, root):
+        self.name = "帮助"
+        PTab.__init__(self, root, self.name)
+
+    def fill(self):
+        self.textVal = StringVar()
+        self.text = Text(self.tab, width=100, height=30, bg='lightgray' ,fg="black", font=("黑体", -12))
+
+        self.text.place(x=5,y=5)
+        self.text.insert(INSERT, "AlexP2P 文件同步传输\n For Alex & Queena \n")
+        intros = self.root.myCmd.do_getIntro()
+        for i in intros:
+            self.text.insert(INSERT, i)
+
+        self.text["state"] = DISABLED
+
 
 
 class SetupTab(PTab):
@@ -485,7 +592,6 @@ class SetupTab(PTab):
 
     def readInfo(self):  # 读入设置信息
         if isfile(getMacAdr() + ".info"):
-            print("read")
             with open(getMacAdr() + ".info") as f:
                 data = json.loads(json.load(f))
             for attr in dir(self):
@@ -553,7 +659,7 @@ class DownloadTab(PTab):
         rowX += self.remoteDir_l.winfo_reqwidth() + 5
         self.remoteDirVal = StringVar()
         self.remoteDir = ttk.Entry(self.tab, style='basic.TEntry',
-                                   textvariable=self.remoteDirVal, width=60)
+                                   textvariable=self.remoteDirVal, width=50)
         self.remoteDir.place(x=rowX, y=rowY)
 
         rowX += self.remoteDir.winfo_reqwidth() + 5
@@ -567,6 +673,32 @@ class DownloadTab(PTab):
                                              text="返回上层",
                                              command=lambda: self.enterRemoteFolder(".."))
         self.remoteDirReturnBtn.place(x=rowX, y=rowY)
+
+        # 设定本地目录#######
+        rowY += self.remoteDirReturnBtn.winfo_reqheight() + 10
+        rowX = self.lSpace
+
+        self.localDir_l = ttk.Label(self.tab, text='本地存储目录为:    ', style="basic.TLabel")
+        self.localDir_l.place(x=rowX, y=rowY)
+
+        rowX += self.localDir_l.winfo_reqwidth() + 5
+        self.localDirVal = StringVar()
+        self.localDirVal.set(self.root.myClient.clientInfo["downloadFolderVal"])
+        self.localDir = ttk.Entry(self.tab, style='basic.TEntry',
+                                   textvariable=self.localDirVal, width=50)
+        self.localDir.place(x=rowX, y=rowY)
+
+        rowX += self.localDir.winfo_reqwidth() + 5
+        self.localDirEnterBtn = ttk.Button(self.tab, style="basic.TButton",
+                                            text="查看本地目录",
+                                            command=lambda: self.enterLocalFolder(self.localDirVal.get()))
+        self.localDirEnterBtn.place(x=rowX, y=rowY)
+
+        rowX += self.localDirEnterBtn.winfo_reqwidth() + 5
+        self.localDirReturnBtn = ttk.Button(self.tab, style="basic.TButton",
+                                             text="返回远程目录",
+                                             command=lambda: self.enterRemoteFolder(self.remoteDirVal.get()))
+        self.localDirReturnBtn.place(x=rowX, y=rowY)
 
         # 显示文件列表###########
 
@@ -651,20 +783,28 @@ class DownloadTab(PTab):
             self.remoteDirVal.set(info["path"])
             self.enterRemoteFolder(info["path"])
         else:  # 处理文件下载
+            # if info["state"] == "本地"
             yesno = messagebox.askyesno('提示', '要下载文件{}吗'.format(info["name"]))
             if yesno:
                 self.root.myCmd.do_fetch(self.root.myClient, self.connClientVal.get(), info["dirName"], info["name"])
 
+
     # @self.showEx()
     def connectClient(self):
-
-        clientName = self.connClientVal.get()
-        client = self.root.myCmd.do_getClient(clientName, self.connClientPWDVal.get())
-
-        self.showFilelist(client["fileList"],self.root.myClient.clientInfo["downloadFolderVal"])
-        self.remoteDirVal.set(client["downloadFolderVal"])
+        try:
+            clientName = self.connClientVal.get()
+            client = self.root.myCmd.do_getClient(clientName, self.connClientPWDVal.get())
+            self.showFilelist(client["fileList"],self.root.myClient.clientInfo["downloadFolderVal"])
+            self.remoteDirVal.set(client["downloadFolderVal"])
+        except Exception as e:
+            self.info("连接远程设备出错，出错信息:" + str(e))
+            messagebox.showerror('连接错误', '无法连接远程终端，密码错误')
 
     def enterRemoteFolder(self, dirName):
+        if not dirName or dirName=='':
+            self.info("请先连接远程终端")
+            messagebox.showerror('返回错误', '未连接远程终端，请先选择并连接')
+            return
         sep = os.sep
         if self.remoteDirVal.get().find("\\") > 0: sep = "\\"
         if dirName == "..":
@@ -683,6 +823,11 @@ class DownloadTab(PTab):
         client = self.root.myCmd.do_cd(dirName, self.root.myClient.clientName, self.connClientVal.get(),
                                        self.connClientPWDVal.get())
         self.showFilelist(client["fileList"], self.root.myClient.clientInfo["downloadFolderVal"])
+        self.root.progressBarVal.set(100)
+
+    def enterLocalFolder(self,dirName):
+        fileList = makeFileList(dirName)
+        self.showFilelist(fileList)
 
 
 class SyncTab(PTab):
@@ -896,10 +1041,7 @@ class SyncTab(PTab):
 
 def main():
     r = Root((800, 600))
-    InfoTab(r)
-    SetupTab(r)
-    DownloadTab(r)
-    SyncTab(r)
+    r.login()
     # r.notebook.select(2)
     r.wnd.mainloop()
 
