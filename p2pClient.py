@@ -1,10 +1,9 @@
-from xmlrpc.client import ServerProxy, Binary, Fault
+from xmlrpc.client import ServerProxy, Binary
 from myUtils import *
 import sys, time
-# import server
 import os
 import re
-from os.path import join, isfile, abspath
+from os.path import join
 from tkinter import StringVar, IntVar
 
 # s = ServerProxy('http://106.13.113.252:9001')
@@ -89,6 +88,8 @@ class MyClient:
                                            nowStr() + " 开始传回文件{}".format(filename), 4)
                 data = self.proxy.query(filename, self.clientName)
                 self.saveFileInClient(data, filename)
+                self.proxy.setSessionState(self.clientName, "fileFetch",
+                                           nowStr() + " 文件传输成功{}".format(filename), 5)
                 # self.proxy.getFileFromServer(filename,self.dirName)
                 self.mPrint("文件{} 下载成功！ 存放于{} ".format(filename, self.clientInfo["downloadFolderVal"]))
             elif cmd["cmdC"] == "changeDir":

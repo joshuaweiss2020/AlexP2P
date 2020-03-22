@@ -1,26 +1,19 @@
-from xmlrpc.client import ServerProxy, Fault
-from cmd import Cmd
-from os import listdir
-from threading import Thread
 
-from os.path import join, isfile
-import os
-import myClient
-import sys
+
+from os.path import isfile
+
 from tkinter import *
-# from tkinter.ttk import *
 import tkinter.filedialog
 import tkinter.scrolledtext
 import tkinter.messagebox as messagebox
 from tkinter import ttk
-from myUtils import *
+
 import p2pCmd
 import socket
 import json
-import traceback
-from functools import wraps
 import webbrowser
 from p2pClient import VERSION
+from myUtils import *
 
 
 
@@ -366,7 +359,7 @@ class SetupTab(PTab):
         rowX = self.lSpace
 
         self.passwordVal = StringVar()
-        if not self.passwordVal.get(): self.passwordVal.set("000000")
+        if not self.passwordVal.get(): self.passwordVal.set("0628")
 
         self.password_l = ttk.Label(self.tab, text='访问密码:  ', style="basic.TLabel")
         self.password_l.place(x=rowX, y=rowY)
@@ -377,7 +370,7 @@ class SetupTab(PTab):
         self.password.place(x=rowX, y=rowY)
 
         rowX += self.password.winfo_reqwidth() + 5
-        self.password_help = ttk.Label(self.tab, text='【用于同步和远程访问的密码】', style="basic.TLabel")
+        self.password_help = ttk.Label(self.tab, text='【用于同步和远程访问的密码,默认0628】', style="basic.TLabel")
         self.password_help.place(x=rowX, y=rowY)
 
         # 设定下载文件夹
@@ -385,8 +378,8 @@ class SetupTab(PTab):
         rowX = self.lSpace
         self.downloadFolderVal = StringVar()
         if not self.downloadFolderVal.get():
-            self.downloadFolderVal.set(sys.path[0] + os.sep + self.clientNameVal.get())
-
+            #self.downloadFolderVal.set(sys.path[0] + os.sep + self.clientNameVal.get())
+            self.downloadFolderVal.set(path.join(os.getcwd(),self.clientNameVal.get(),"download"))
 
         self.downloadFolder_l = ttk.Label(self.tab, text='下载文件夹:', style="basic.TLabel")
         self.downloadFolder_l.place(x=rowX, y=rowY)
@@ -410,7 +403,8 @@ class SetupTab(PTab):
         self.syncFolderVal = StringVar()
         self.root.syncFolderVal = self.syncFolderVal
         if not self.syncFolderVal.get():
-            self.syncFolderVal.set(sys.path[0] + os.sep + "sync_" + self.clientNameVal.get())
+            #self.syncFolderVal.set(sys.path[0] + os.sep + "sync_" + self.clientNameVal.get())
+            self.syncFolderVal.set(path.join(os.getcwd(), self.clientNameVal.get(), "sync"))
 
         rowY += self.downloadFolder_help.winfo_reqheight() + 10
         rowX = self.lSpace
@@ -560,6 +554,7 @@ class SetupTab(PTab):
             with open(getMacAdr() + ".info", "w") as f:
                 json.dump(json.dumps(data, indent=4), f)
             self.info("设置信息更新成功")
+            self.readInfo()
             self.root.connectServer()
             self.root.widgets.tabs[1].show()
 

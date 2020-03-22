@@ -1,28 +1,16 @@
-from xmlrpc.client import ServerProxy, Fault
+from xmlrpc.client import ServerProxy
 from cmd import Cmd
 from os import listdir
 from threading import Thread
-from multiprocessing import Process
 from time import sleep
-import os
 import re
 from os.path import join, isfile
 from p2pClient import URL, MyClient,VERSION
 from myUtils import *
 import server
-
-# from P2P_gui import *
 import sys
 
 
-class UnhandledQuery(Fault):  # 远程无法抛异常，只能通过Fault的faultcode来处理，Fault被客户端作为异常处理
-    def __init__(self, message="Couldn't handle the query "):
-        super().__init__(UNHANDLED, message)
-
-
-class AccessDenied(Fault):
-    def __init__(self, message="Access denied"):
-        super().__init__(ACCESS_DENIED, message)
 
 
 class MyCmd(Cmd):
@@ -52,20 +40,20 @@ class MyCmd(Cmd):
                 self.root.progressBar.update()
                 i = 0
                 state_temp = 0
-                while not isfile(join(self.clientName, filename)):
+                while not isfile(join(downloadDir, filename)):
 
                     msg, state = self.proxy.getSessionState(self.clientName, "fileFetch")
                     if state > state_temp:
                         self.root.progressBarVal.set(20 * state)
                         self.root.progressInfo_l["text"] = msg
                         self.root.progressBar.update()
-                    self.mPrint(msg, state)
+                    #self.mPrint(msg, state)
                     if state == -1 or state == 5:
                         sleep(1)
                         return
                     sleep(1)
                     i += 1
-                    if i > 20:
+                    if i > 300:
                         self.mPrint("time out")
                         return
                 self.mPrint("从 ", fromW, "获取的文件", filename, " 已保存成功！")

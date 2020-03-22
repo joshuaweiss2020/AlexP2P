@@ -4,11 +4,9 @@ from xmlrpc.server import SimpleXMLRPCRequestHandler
 from os.path import join, isfile, abspath
 from urllib.parse import urlparse
 from time import sleep
-import time
 from threading import Thread
-from os import listdir
 from myUtils import *
-from p2pClient import MyClient, URL
+from p2pClient import MyClient
 import re
 import sys
 import json
