@@ -217,7 +217,7 @@ class MyServer:
 
 
     def checkLogin(self,clientName,macAddr,clientPW): # 从info文件核对密码，判断能否连接
-        pathStr = join(self.startPath, "userData", macAddr + "_" + clientName,macAddr+".info")
+        pathStr = join(self.startPath, "userData", clientName,clientName+".info")
         if not path.exists(pathStr):
             return -1
         else:
