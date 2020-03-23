@@ -251,3 +251,6 @@ def aaa(*arg):
     print(arg)
 
 aaa(4,"d","ddd")
+a="c:\\fdafda/fdsaf/fdafd"
+a=a.replace("/","\\")
+print(a)

@@ -79,15 +79,19 @@ class MyCmd(Cmd):
             absPathStr = os.path.abspath(root)
             for f in files:
                 info = fileInfo(f, absPathStr)
-                if join(fPath, f) not in sInfo:  # 远程无文件
+                pathStr = join(fPath, f)
+                if os.sep != "\\":  # os x 系统 处理
+                    pathStr = pathStr.replace("/", "\\")
+
+                if pathStr not in sInfo:  # 远程无文件
                     info["state"] = "本地新建"
                     upload_files.append(info)
                 else:
                     localStamp = os.path.getmtime(join(root, f))
                     localSize = os.path.getsize(join(root, f))
 
-                    remoteStamp = sInfo[join(fPath, f)]["mtime"]
-                    remoteSize = sInfo[join(fPath, f)]["size"]
+                    remoteStamp = sInfo[pathStr]["mtime"]
+                    remoteSize = sInfo[pathStr]["size"]
 
                     if localSize == remoteSize:
                         info["state"] = "已作同步"
@@ -100,7 +104,8 @@ class MyCmd(Cmd):
                         info["state"] = "本地较新"
                         upload_files.append(info)
 
-                    del sInfo_c[join(fPath, f)]
+                    if pathStr in sInfo_c.keys():
+                        del sInfo_c[pathStr]
 
         # 对于远程同步存在，但本地不存在的文件，加入到待下载列表
         download_files += self.proxy.getSyncInfoListFromServer(self.clientName, getMacAdr(), list(sInfo_c.keys()),
@@ -121,9 +126,13 @@ class MyCmd(Cmd):
         if info["dirName"].find(localSyncDir) > -1:
             syncDir = getReDir(info["dirName"], localSyncDir)
         else:
+            severSyncDir= severSyncDir.replace("/","\\")
+            severSyncDir = severSyncDir.replace("\\\\", "\\")
             syncDir = getReDir(info["dirName"], severSyncDir)
 
         syncDir = re.sub('^[\\\/]', '', syncDir)  # 去掉开头的\或/
+        if os.sep != "\\": # os x 系统 处理
+            syncDir = syncDir.replace("\\","/")
         self.root.syncProgressBarVal.set(20)
         self.root.syncProgressInfo_l["text"] = nowStr() + " 开始从同步文件夹传回文件{}".format(filename)
         data = self.proxy.query(filename, self.clientName, join("sync", syncDir))  # 服务器中同步文件在目录sync之下

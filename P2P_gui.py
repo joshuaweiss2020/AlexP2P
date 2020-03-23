@@ -14,6 +14,7 @@ import json
 import webbrowser
 from p2pClient import VERSION
 from myUtils import *
+from p2pClient import MyClient
 
 
 
@@ -133,7 +134,7 @@ class Root():
                     self.isCheckLogin = True
 
                 else:   #更新信息
-                    self.myClient.clientName = clientName
+                    self.myClient = MyClient(setupTab,"update")
                     self.myClient.updateClientInfo()
 
             except Fault as f:
@@ -387,8 +388,9 @@ class SetupTab(PTab):
         rowX = self.lSpace
         self.downloadFolderVal = StringVar()
         if not self.downloadFolderVal.get():
-            #self.downloadFolderVal.set(sys.path[0] + os.sep + self.clientNameVal.get())
-            self.downloadFolderVal.set(path.join(os.getcwd(),self.clientNameVal.get(),"download"))
+            pathStr = path.join(os.getcwd(),self.clientNameVal.get(),"download")
+            pathStr = re.sub(r"P2P_gui.app/Contents/Resources/","",pathStr) #处理苹果APP目录
+            self.downloadFolderVal.set(pathStr)
 
         self.downloadFolder_l = ttk.Label(self.tab, text='下载文件夹:', style="basic.TLabel")
         self.downloadFolder_l.place(x=rowX, y=rowY)
@@ -412,8 +414,9 @@ class SetupTab(PTab):
         self.syncFolderVal = StringVar()
         self.root.syncFolderVal = self.syncFolderVal
         if not self.syncFolderVal.get():
-            #self.syncFolderVal.set(sys.path[0] + os.sep + "sync_" + self.clientNameVal.get())
-            self.syncFolderVal.set(path.join(os.getcwd(), self.clientNameVal.get(), "sync"))
+            pathStr = path.join(os.getcwd(),self.clientNameVal.get(),"sync")
+            pathStr = re.sub(r"P2P_gui.app/Contents/Resources/","",pathStr) #处理苹果APP目录
+            self.syncFolderVal.set(pathStr)
 
         rowY += self.downloadFolder_help.winfo_reqheight() + 10
         rowX = self.lSpace
@@ -566,7 +569,7 @@ class SetupTab(PTab):
             self.readInfo()
             rs = self.root.connectServer()
             if rs != 0: # 0 为连接失败
-                self.root.widgets.tabs[1].show()
+                self.root.widgets.tabs[0].show()
             else:
                 messagebox.showerror('连接错误', '无法连接服务器，请检查用户名：{} 及密码'.format(self.root.clientName))
 
@@ -617,7 +620,7 @@ class DownloadTab(PTab):
         rowX += self.connClientPWD_l.winfo_reqwidth() + 5
         self.connClientPWDVal = StringVar()
         self.connClientPWD = ttk.Entry(self.tab, style='basic.TEntry',
-                                       textvariable=self.connClientPWDVal, width=10)
+                                       textvariable=self.connClientPWDVal, width=10,show="*")
         self.connClientPWD.place(x=rowX, y=rowY)
 
         rowX += self.connClientPWD.winfo_reqwidth() + 5

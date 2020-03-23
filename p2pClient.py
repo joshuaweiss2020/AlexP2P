@@ -17,7 +17,7 @@ VERSION = 1.0
 
 class MyClient:
     @catchRpcEx
-    def __init__(self, setupTab=None):
+    def __init__(self, setupTab=None, isUpdate=None):
         self.clientInfo = {}
         self.proxy = None
         self.root = None
@@ -67,9 +67,9 @@ class MyClient:
             self.proxy = connServerProxy(URL, self.clientInfo)
             self.mPrint("连接代理服务器{}:{}成功！".format(self.clientInfo["proxyIPVal"], self.clientInfo["proxyPortVal"]))
 
+        if not isUpdate:
+            self.proxy.regClient(self.clientName, self.clientInfo)
 
-        rs = self.proxy.regClient(self.clientName, self.clientInfo)
-        print(rs)
 
 
 
