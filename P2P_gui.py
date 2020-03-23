@@ -115,7 +115,7 @@ class Root():
         else:
             try:
                 if not self.myClient or not self.myCmd or clientName != setupTab.clientNameInit or not self.isCheckLogin: #首次登录或更换用户或前次登录失败
-                    self.myClient, self.myCmd = p2pCmd.gui_main(setupTab)
+                    self.myClient, self.myCmd = p2pCmd.gui_main(setupTab,self)
                     self.myClient.root = self
                     self.myCmd.root = self
                     #保存配置文件
@@ -746,8 +746,9 @@ class DownloadTab(PTab):
         self.fill()
         self.root.notebook.select(1)
         clientList = self.root.myCmd.do_getCl()
-        self.connClient["values"] = tuple(clientList.keys())
-        self.connClient.current(1)
+        if clientList:
+            self.connClient["values"] = tuple(clientList.keys())
+            self.connClient.current(1)
 
 
     def fileChoosed(self, event):

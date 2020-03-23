@@ -27,8 +27,8 @@ class ProxiedTransport(Transport):  # 用于处理代理服务器
         self.ProxyServer = ProxyServer
 
     def set_proxy(self, host, port=None, headers=None):
-        self.proxy = self.ProxyServer["USERNAME"], self.ProxyServer["PASSWORD"], self.ProxyServer["PROXY_IP"], self.ProxyServer[
-            "PROXY_PORT"]
+        self.proxy = self.ProxyServer["proxyUserVal"], self.ProxyServer["proxyPasswordVal"], \
+                     self.ProxyServer["proxyIPVal"], self.ProxyServer["proxyPortVal"]
         self.proxy_headers = headers
         self.host = host
 

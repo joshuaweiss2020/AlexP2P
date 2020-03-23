@@ -30,6 +30,8 @@ class MyClient:
             self.clientInfo["passwordVal"] = "server"
             cmd = {"args": ["server"]}
             self.clientInfo["macAddr"] = "server"
+            self.clientInfo["proxy_cbVal"] == 0
+
             self.root = None
 
         else:
@@ -62,18 +64,17 @@ class MyClient:
         if self.clientInfo["proxy_cbVal"] == 0:
             self.proxy = ServerProxy(URL)
         else: #处理代理服务器
-            ProxyServer = {}
-            ProxyServer["USERNAME"] = self.clientInfo["proxyUserVal"]
-            ProxyServer["PASSWORD"] = self.clientInfo["proxyPasswordVal"]
-            ProxyServer["PROXY_IP"] = self.clientInfo["proxyIPVal"]
-            ProxyServer["PROXY_PORT"] = self.clientInfo["proxyPortVal"]
-
-            self.proxy = connServerProxy(URL, ProxyServer)
+            self.proxy = connServerProxy(URL, self.clientInfo)
             self.mPrint("连接代理服务器{}:{}成功！".format(self.clientInfo["proxyIPVal"], self.clientInfo["proxyPortVal"]))
 
 
         rs = self.proxy.regClient(self.clientName, self.clientInfo)
         print(rs)
+
+
+
+
+
 
     @catchRpcEx
     def checkCmds(self):

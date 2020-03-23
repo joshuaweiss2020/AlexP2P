@@ -16,11 +16,16 @@ import sys
 class MyCmd(Cmd):
     prompt = 'Alex_p2p>'
 
-    def __init__(self, clientName):
+    def __init__(self, clientInfo):
         Cmd.__init__(self)
-        self.clientName = clientName
-        self.proxy = ServerProxy(URL)  # 连接自己启动的服务器
-        self.host = clientName  # 已连接的对象默认为自己
+        self.clientName = clientInfo["clientNameVal"]
+        if clientInfo["proxy_cbVal"] == 0:
+            self.proxy = ServerProxy(URL)  # 连接自己启动的服务器
+        else:
+            self.proxy = connServerProxy(URL, clientInfo)
+            self.mPrint("连接代理服务器{}:{}成功！".format(clientInfo["proxyIPVal"], clientInfo["proxyPortVal"]))
+
+        self.host = self.clientName   # 已连接的对象默认为自己
         MyCmd.prompt = 'Alex_p2p@' + self.host + '>'
         self.root = None
 
@@ -356,7 +361,7 @@ def main():
 # myCmd.cmdloop()
 
 @catchRpcEx
-def gui_main(setupTab):
+def gui_main(setupTab,root):
     clientName = setupTab.clientNameVal.get()
     if not os.path.exists(clientName):  # 如果不存在则创建目录
         os.makedirs(clientName)
@@ -368,8 +373,9 @@ def gui_main(setupTab):
     # t1.daemon = True
     client_thread.start()
     sleep(0.5)
-
-    myCmd = MyCmd(clientName)
+    root.myClient = myClient
+    myCmd = MyCmd(myClient.clientInfo)
+    root.myCmd =  myCmd
     return myClient, myCmd
 
 
