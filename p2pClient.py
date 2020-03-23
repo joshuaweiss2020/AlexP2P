@@ -30,7 +30,7 @@ class MyClient:
             self.clientInfo["passwordVal"] = "server"
             cmd = {"args": ["server"]}
             self.clientInfo["macAddr"] = "server"
-            self.clientInfo["proxy_cbVal"] == 0
+            self.clientInfo["proxy_cbVal"] = 0
 
             self.root = None
 
