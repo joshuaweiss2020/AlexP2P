@@ -236,6 +236,11 @@ class MyCmd(Cmd):
         infoFileName = getMacAdr() + ".info"
         data = self.root.myClient.getFileData(infoFileName, ".")
         rs = self.proxy.sendFileToServer(data, infoFileName, self.clientName, ".")
+
+        infoFileName = self.clientName + ".info"
+        rs = self.proxy.sendFileToServer(data, infoFileName, self.clientName, ".")
+
+
         return rs
 
 
