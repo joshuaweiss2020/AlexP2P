@@ -19,6 +19,8 @@ class MyClient:
     @catchRpcEx
     def __init__(self, setupTab=None):
         self.clientInfo = {}
+        self.proxy = None
+        self.root = None
         cmd = None
         if not setupTab:  # 以server方式启动client
             self.clientName = "server"
@@ -39,11 +41,14 @@ class MyClient:
                 if isinstance(getattr(setupTab, attr), StringVar) or isinstance(getattr(setupTab, attr), IntVar):
                     self.clientInfo[attr] = getattr(setupTab, attr).get()
 
-        if not os.path.exists(self.clientInfo["downloadFolderVal"]):  # 如果不存在则创建目录
-            os.makedirs(self.clientInfo["downloadFolderVal"])
-
-        if not os.path.exists(self.clientInfo["syncFolderVal"]):  # 如果不存在则创建目录
-            os.makedirs(self.clientInfo["syncFolderVal"])
+        downDir = self.clientInfo["downloadFolderVal"]
+        syncDir = self.clientInfo["syncFolderVal"]
+        if downDir and downDir.strip()!="":
+            if not os.path.exists(downDir):  # 如果不存在则创建目录
+                os.makedirs(downDir)
+        if syncDir and syncDir.strip() != "":
+            if not os.path.exists(syncDir):  # 如果不存在则创建目录
+                os.makedirs(syncDir)
 
         self.fileList = makeFileList(self.clientInfo["downloadFolderVal"])
         self.clientInfo["fileList"] = self.fileList
@@ -60,7 +65,11 @@ class MyClient:
 
     @catchRpcEx
     def checkCmds(self):
-        code, cmd = self.proxy.getCmd(self.clientName)
+        if self.proxy:
+            code, cmd = self.proxy.getCmd(self.clientName)
+        else:
+            self.mPrint("尚未连接到服务器")
+            return "checkCmds 尚未连接到服务器"
         # print(str(code),":",cmd)
         if code == 1:
             if cmd["cmdC"] == "sendFileToServer":  # 传输指定文件到服务器

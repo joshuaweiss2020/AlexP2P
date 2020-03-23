@@ -116,7 +116,7 @@ class MyServer:
     @rpcEx
     def regClient(self, name, clientInfo):  # 注册客户端
         if name not in self.clients.keys():
-            pathStr = join(self.startPath, "userData", clientInfo["macAddr"]+ "_" + name)
+            pathStr = join(self.startPath, "userData", name)
             if not os.path.exists(pathStr):  # 如果不存在则创建目录
                 os.makedirs(pathStr)
                 os.makedirs(join(pathStr, "download"))
@@ -191,7 +191,7 @@ class MyServer:
     def sendFileToServer(self, data, filename, fromW=None, syncPath="download"):  # 向服务器发送文件 sendType 标记下载 或同步
         if data.data == b'': #处理空文件
             data.data = b' '
-        pathStr = join(self.startPath, "userData", self.clients[fromW]["macAddr"] + "_" + fromW)
+        pathStr = join(self.startPath, "userData",fromW)
 
         syncPath = re.sub('^[\\\/]', '', syncPath)  # 去掉开头的\或/
         pathStr = join(pathStr, syncPath)
@@ -257,7 +257,7 @@ class MyServer:
     @rpcEx
     def query(self, filename, clientName, syncPath="download"): #syncPath 为同步目录的文件相对路径 ，默认为下载目录
         # pathStr = self.clients[clientName]["serverDownload"]
-        pathStr = join(self.startPath, "userData", self.clients[clientName]["macAddr"] + "_" + clientName)
+        pathStr = join(self.startPath, "userData", clientName)
 
         pathStr = join(pathStr, syncPath, filename)
         self.ilog("读取文件：", pathStr)
@@ -275,7 +275,7 @@ class MyServer:
         return 0
 
     def getSyncInfoFromServer(self,clientName,macAddr): # 从服务器上读取用户的同步文件时间戳
-        pathStr = join(self.startPath, "userData", macAddr + "_" + clientName) # clientName 发起同步获取请求的客户端
+        pathStr = join(self.startPath, "userData", clientName) # clientName 发起同步获取请求的客户端
         pathStr = join(pathStr, "sync")
 
         sInfo = {}
@@ -294,7 +294,7 @@ class MyServer:
         infoList = []
         for f in pathList:
             f = re.sub('^[\\\/]', '', f) # 去掉开头的\或/
-            pathStr = join(self.startPath, "userData", macAddr + "_" + clientName, "sync", f)  # clientName 发起同步获取请求的客户端
+            pathStr = join(self.startPath, "userData", clientName, "sync", f)  # clientName 发起同步获取请求的客户端
             filename = os.path.basename(pathStr)
             dirname = os.path.dirname(pathStr)
             info = fileInfo(filename, dirname)

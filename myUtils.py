@@ -128,6 +128,8 @@ def lenUtf(s=''):
 
 def makeFileList(clientPath):  # 生成文件信息列表
     fileList = []
+    if not  path.exists(clientPath):
+        return  fileList
     fileNameList = os.listdir(clientPath)
     for name in fileNameList:
         info = fileInfo(name, clientPath)

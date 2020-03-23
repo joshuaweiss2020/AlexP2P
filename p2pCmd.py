@@ -26,9 +26,6 @@ class MyCmd(Cmd):
 
     def do_fetch(self, client, fromW, pathStr, filename):
         downloadDir = client.clientInfo["downloadFolderVal"]
-        # fromW = client.clientName
-        # args = arg.split(" ")
-        # fromW,filename = args[0],args[1]
         try:
             if not isfile(join(downloadDir, filename)):
                 self.proxy.getFileFromOther(fromW, self.clientName, pathStr, filename)
@@ -181,14 +178,16 @@ class MyCmd(Cmd):
         self.root.syncProgressInfo_l["text"] = nowStr() + " 开始向服务器同步文件夹上传文件{}".format(filename)
         self.root.syncAllProgressBar.update()
 
-        self.proxy.sendFileToServer(data, filename, self.clientName, join("sync",syncDir))
+        syncDir = re.sub('^[\\\/]', '', syncDir)
+        syncDir = join("sync", syncDir)
+        self.proxy.sendFileToServer(data, filename, self.clientName, syncDir)
         self.root.syncProgressBarVal.set(100)
         self.root.syncProgressInfo_l["text"] = nowStr() + " 文件{}上传同步成功！".format(filename)
 
         self.root.syncAllProgressBarVal.set(100)
         self.root.syncAllProgressBar.update()
 
-        self.mPrint("文件{} 上传成功！".format(filename))
+        self.mPrint("文件{} 上传成功至{}！".format(filename, syncDir))
 
     def do_syncUploadAll(self):  # 上传所有文件
         progress = 0
@@ -357,11 +356,12 @@ def gui_main(setupTab):
 
     myClient = MyClient(setupTab)
     # t1 = Process(target=myClient.clientLoop(), name="client_p")
-    t1 = Thread(target=myClient.clientLoop, name="client_thread")
-    t1.setDaemon(True)
+    client_thread = Thread(target=myClient.clientLoop, name="client_thread")
+    client_thread.setDaemon(True)
     # t1.daemon = True
-    t1.start()
+    client_thread.start()
     sleep(0.5)
+
     myCmd = MyCmd(clientName)
     return myClient, myCmd
 
