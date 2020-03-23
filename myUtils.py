@@ -1,10 +1,12 @@
 import time
 import uuid
 import os.path as path
-from xmlrpc.client import Fault
+from xmlrpc.client import Fault,Transport,ProtocolError,ServerProxy
 from functools import wraps
 import traceback
 import os
+import urllib
+import urllib.request
 
 
 import logging
@@ -17,6 +19,49 @@ class MyException(Exception):
 
     def __str__(self):
         return "自定义异常：" + self.msg
+
+
+class ProxiedTransport(Transport):  # 用于处理代理服务器
+    def __init__(self,ProxyServer):
+        Transport.__init__(self)
+        self.ProxyServer = ProxyServer
+
+    def set_proxy(self, host, port=None, headers=None):
+        self.proxy = self.ProxyServer["USERNAME"], self.ProxyServer["PASSWORD"], self.ProxyServer["PROXY_IP"], self.ProxyServer[
+            "PROXY_PORT"]
+        self.proxy_headers = headers
+        self.host = host
+
+    def single_request(self, host, handler, request_body, verbose=False):
+        try:
+
+            proxy = urllib.request.ProxyHandler({"http": "http://{}:{}@{}:{}".format(*self.proxy)})
+            opener = urllib.request.build_opener(proxy)
+            URL = self.host + "/RPC2"
+            resp = opener.open(URL, request_body)
+            if resp.status == 200:
+                self.verbose = verbose
+                return self.parse_response(resp)
+        except Fault as f:
+            print(f)
+            #raise
+        except Exception:
+            self.close()
+            raise
+        if resp.getheader("content-length", ""):
+            resp.read()
+        raise ProtocolError(
+            host + handler,
+            resp.status, resp.reason,
+            dict(resp.getheaders())
+        )
+
+
+def connServerProxy(url,ProxyServer):
+    transport = ProxiedTransport(ProxyServer)
+    transport.set_proxy(url)
+    print("走代理")
+    return ServerProxy(url, transport=transport)
 
 
 def logInit(logPath):
@@ -36,6 +81,7 @@ def logInit(logPath):
     fh.setLevel(10)  # 写入文件的从10开始
     sh.setLevel(10)  # 在屏幕显示的从30开始
     return logger
+
 
 def deb(fn):  # 用于调试的装饰器函数
     def debugPrint(*args, **kwargs):
@@ -128,8 +174,8 @@ def lenUtf(s=''):
 
 def makeFileList(clientPath):  # 生成文件信息列表
     fileList = []
-    if not  path.exists(clientPath):
-        return  fileList
+    if not path.exists(clientPath):
+        return fileList
     fileNameList = os.listdir(clientPath)
     for name in fileNameList:
         info = fileInfo(name, clientPath)
@@ -158,13 +204,11 @@ def setProgressBar(bar, sec, loc):  # 设置进度条，sec为运行秒数，loc
     print(nowStr())
 
 
-
 def fileInfo(filename, dirname=""):
     info = {}
     info["name"] = filename
     info["dirName"] = dirname
     info["folderName"] = getFolderName(dirname)
-
 
     info["path"] = path.join(dirname, filename)
     info["exists"] = path.exists(info["path"])
@@ -237,8 +281,7 @@ def rowShow(titleDef, col_len_l, info, localDir=None):
             col_num += 1
     except Exception as e:
         print("col_inf:", col_info)
-        print("e:",e)
-
+        print("e:", e)
 
     return col_data + "\n"
 

@@ -110,7 +110,7 @@ class MyCmd(Cmd):
     def do_syncDownload(self, info):  # 从服务器下载同步文件
         filename = info["name"]
         # syncPath 为同步目录的文件相对路径
-        severSyncDir = join(server.SERVER_START_PATH, "userData", getMacAdr() + "_" + self.clientName, "sync")
+        severSyncDir = join(server.SERVER_START_PATH, "userData", self.clientName, "sync")
         localSyncDir = self.root.myClient.clientInfo["syncFolderVal"]
 
         if info["dirName"].find(localSyncDir) > -1:
@@ -300,7 +300,9 @@ class MyCmd(Cmd):
         if clientPassword.strip() == connPwd.strip():
             return client
         else:
-            raise MyException("密码:{} 有误，无法连接{}{}".format(connPwd, clientName, "PP"+clientPassword.strip()))
+            self.mPrint("密码:{} 有误，无法连接{}".format(connPwd, clientName))
+            return None
+            # raise MyException("密码:{} 有误，无法连接{}{}".format(connPwd, clientName, "PP"+clientPassword.strip()))
 
     @catchRpcEx
     def do_getCl(self, args=None):

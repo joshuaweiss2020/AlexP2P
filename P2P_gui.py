@@ -47,6 +47,7 @@ class Root():
         self.upload_files, self.download_files, self.same_files = None, None, None
         self.syncListSelected = None
         self.connected = False
+        self.isCheckLogin = False
 
         self.style = ttk.Style()
         self.initStyles()
@@ -56,7 +57,9 @@ class Root():
         index = self.notebook.index(tabId)
         if not self.connected and index!= self.tabIndexes["设置"]:
             messagebox.showerror('连接错误', '未连接服务器，请检查网络、代理服务器，修改后连接')
-            self.widgets.tabs[2].show()
+            self.notebook.select(self.tabIndexes["设置"])
+            self.widgets.tabs[self.tabIndexes["设置"]].show()
+
         else:
             self.widgets.tabs[index].show()
         # if index == 0:
@@ -88,6 +91,7 @@ class Root():
             self.notebook.select(self.tabIndexes["设置"])
             setupTab.fill()
         else:
+            self.notebook.select(self.tabIndexes["设置"])
             setupTab.show()  #fill & readfile
             if self.connectServer() == 1:
                 self.connected = True
@@ -97,7 +101,9 @@ class Root():
                 syncTab.viewSyncFiles("upload")
             else:
                 self.connected = False
+
                 self.notebook.select(self.tabIndexes["设置"])
+                # print(self.notebook.index(self.notebook.select()))
 
     def connectServer(self):
         setupTab = self.widgets.tabs[2]
@@ -108,7 +114,7 @@ class Root():
             return 0
         else:
             try:
-                if not self.myClient or not self.myCmd or clientName != setupTab.clientNameInit: #首次登录
+                if not self.myClient or not self.myCmd or clientName != setupTab.clientNameInit or not self.isCheckLogin: #首次登录或更换用户或前次登录失败
                     self.myClient, self.myCmd = p2pCmd.gui_main(setupTab)
                     self.myClient.root = self
                     self.myCmd.root = self
@@ -120,10 +126,11 @@ class Root():
                     elif rs == 1:
                         self.PTab.info("用户名密码验证通过!")
                     elif rs == 0:
-                        messagebox.showerror('连接错误', '无法连接服务器，请检查用户名：{} 及密码：{}'
-                                             .format(self.clientName,setupTab.passwordVal.get()))
+                        # messagebox.showerror('连接错误', '无法连接服务器，请检查用户名：{} 及密码'.format(self.clientName))
                         self.PTab.info("连接失败，用户名密码错误!")
+                        self.isCheckLogin = False #记录连接失败过
                         return 0
+                    self.isCheckLogin = True
 
                 else:   #更新信息
                     self.myClient.clientName = clientName
@@ -313,9 +320,11 @@ class HelpTab(PTab):
         for i in intros:
             self.text.insert(INSERT, i)
 
-        self.text.insert(INSERT, "\n"*4)
+        self.text.insert(INSERT, "\n"*2)
         self.text.insert(INSERT, "【当前用户】 {} \n".format(self.root.clientName))
         self.text.insert(INSERT, "【当前版本】 {} \n".format(VERSION))
+        self.text.insert(INSERT, "【更新时间】 {} \n".format("2020-03-23"))
+        self.text.insert(INSERT, "【设计开发】 {} \n".format("骄华"))
 
 
         self.text["state"] = DISABLED
@@ -481,7 +490,7 @@ class SetupTab(PTab):
         rowY += self.proxyPort_help.winfo_reqheight() + 10
         rowX = self.lSpace
         self.proxyUserVal = StringVar()
-        self.proxyUserVal.set("weijiaohua-004")
+        self.proxyUserVal.set("")
 
         self.proxyUser_l = ttk.Label(self.tab, text='用户名:    ', style="basic.TLabel")
         self.proxyUser_l.place(x=rowX, y=rowY)
@@ -499,7 +508,7 @@ class SetupTab(PTab):
         rowY += self.proxyUser_help.winfo_reqheight() + 10
         rowX = self.lSpace
         self.proxyPasswordVal = StringVar()
-        self.proxyPasswordVal.set("Cpic2190#")
+        self.proxyPasswordVal.set("")
 
         self.proxyPassword_l = ttk.Label(self.tab, text='用户密码:  ', style="basic.TLabel")
         self.proxyPassword_l.place(x=rowX, y=rowY)
@@ -558,6 +567,8 @@ class SetupTab(PTab):
             rs = self.root.connectServer()
             if rs != 0: # 0 为连接失败
                 self.root.widgets.tabs[1].show()
+            else:
+                messagebox.showerror('连接错误', '无法连接服务器，请检查用户名：{} 及密码'.format(self.root.clientName))
 
 
     def readInfo(self):  # 读入设置信息
@@ -762,11 +773,14 @@ class DownloadTab(PTab):
         try:
             clientName = self.connClientVal.get()
             client = self.root.myCmd.do_getClient(clientName, self.connClientPWDVal.get())
-            self.showFilelist(client["fileList"],self.root.myClient.clientInfo["downloadFolderVal"])
-            self.remoteDirVal.set(client["downloadFolderVal"])
+            if client:
+                self.showFilelist(client["fileList"],self.root.myClient.clientInfo["downloadFolderVal"])
+                self.remoteDirVal.set(client["downloadFolderVal"])
+            else:
+                messagebox.showerror('连接错误', '无法连接远程终端，密码错误')
         except Exception as e:
             self.info("连接远程设备出错，出错信息:" + str(e))
-            messagebox.showerror('连接错误', '无法连接远程终端，密码错误')
+
 
     def enterRemoteFolder(self, dirName):
         if not dirName or dirName=='':
@@ -790,8 +804,13 @@ class DownloadTab(PTab):
 
         client = self.root.myCmd.do_cd(dirName, self.root.myClient.clientName, self.connClientVal.get(),
                                        self.connClientPWDVal.get())
-        self.showFilelist(client["fileList"], self.root.myClient.clientInfo["downloadFolderVal"])
-        self.root.progressBarVal.set(100)
+        if client:
+            self.showFilelist(client["fileList"], self.root.myClient.clientInfo["downloadFolderVal"])
+            self.root.progressInfo_l["text"] = "目录已切换成: {}".format(dirName)
+            self.root.progressBarVal.set(100)
+        else:
+            self.root.progressInfo_l["text"] = "目录切换失败".format(dirName)
+            self.root.progressBarVal.set(0)
 
     def enterLocalFolder(self,dirName):
         fileList = makeFileList(dirName)
@@ -1017,7 +1036,8 @@ class SyncTab(PTab):
 def main():
     r = Root((800, 600))
     r.login()
-    # r.notebook.select(2)
+    print("loop")
+
     r.wnd.mainloop()
 
 if __name__ == '__main__':
