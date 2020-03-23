@@ -54,7 +54,7 @@ class Root():
     def tabChoosed(self, *args):
         tabId = self.notebook.select()
         index = self.notebook.index(tabId)
-        if not self.connected:
+        if not self.connected and index!= self.tabIndexes["设置"]:
             messagebox.showerror('连接错误', '未连接服务器，请检查网络、代理服务器，修改后连接')
             self.widgets.tabs[2].show()
         else:
@@ -83,8 +83,8 @@ class Root():
         downloadTab = DownloadTab(self)
         setupTab = SetupTab(self)
         helpTab = HelpTab(self)
-
-        if not isfile(getMacAdr() + ".info"): #初次使用
+        infoPath = path.join(os.getcwd(),getMacAdr() + ".info")
+        if not path.exists(infoPath): #初次使用
             self.notebook.select(self.tabIndexes["设置"])
             setupTab.fill()
         else:
@@ -151,7 +151,7 @@ class Root():
         if rs == -1:
             yesno = messagebox.askyesno('提示', '当前版本较旧是否下载新版本？')
             if yesno:
-                webbrowser.open("http://106.13.113.252")
+                webbrowser.open("http://106.13.113.252//p2p.htm")
                 return
         return rs
 
@@ -555,8 +555,9 @@ class SetupTab(PTab):
                 json.dump(json.dumps(data, indent=4), f)
             self.info("设置信息更新成功")
             self.readInfo()
-            self.root.connectServer()
-            self.root.widgets.tabs[1].show()
+            rs = self.root.connectServer()
+            if rs != 0: # 0 为连接失败
+                self.root.widgets.tabs[1].show()
 
 
     def readInfo(self):  # 读入设置信息
