@@ -361,6 +361,8 @@ class SetupTab(PTab):
         self.clientName = ttk.Entry(self.tab, style='basic.TEntry',
                                     textvariable=self.clientNameVal)
         self.clientName.place(x=rowX, y=rowY)
+        self.clientName.bind("<Any-KeyRelease>", self.changeDirName)
+
 
         rowX += self.clientName.winfo_reqwidth() + 5
         self.clientName_help = ttk.Label(self.tab, text='【作为远程访问和同步标识】', style="basic.TLabel")
@@ -543,7 +545,10 @@ class SetupTab(PTab):
         self.update_btn.place(x=x, y=rowY)
 
     def chooseFolder(self, val):
-        val.set(tkinter.filedialog.askdirectory())
+        dirStr = tkinter.filedialog.askdirectory()
+        if os.sep == "\\" and dirStr.find("/")>-1:
+            dirStr = dirStr.replace("/","\\")
+        val.set(dirStr)
 
     def proxyCheck(self):
         if self.proxy_cbVal.get() == 0:
@@ -591,6 +596,16 @@ class SetupTab(PTab):
 
         else:
             self.info("初次使用，需要设定相关参数")
+
+    def changeDirName(self, event):
+
+        pathStr = path.join(os.getcwd(), self.clientNameVal.get())
+        pathStr = re.sub(r"P2P_gui.app/Contents/Resources/", "", pathStr)  # 处理苹果APP目录
+        if os.sep == "\\" and pathStr.find("/")>-1:
+            pathStr = pathStr.replace("/","\\")
+
+        self.downloadFolderVal.set(path.join(pathStr,"download"))
+        self.syncFolderVal.set(path.join(pathStr,"sync"))
 
 
 class DownloadTab(PTab):

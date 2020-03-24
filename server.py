@@ -19,7 +19,7 @@ SimpleXMLRPCServer.allow_reuse_address = 1
 UNHANDLED = 100
 ACCESS_DENIED = 200
 SERVER_START_PATH = "C:\\AlexP2P\\"
-VERSION = 1.0
+VERSION = 1.1
 
 
 

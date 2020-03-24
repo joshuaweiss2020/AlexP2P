@@ -12,7 +12,7 @@ URL = "http://106.13.113.252:9001"
 
 
 #URL = "http://127.0.0.1:2001"
-VERSION = 1.0
+VERSION = 1.1
 
 
 class MyClient:
