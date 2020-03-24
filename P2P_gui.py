@@ -136,6 +136,7 @@ class Root():
                 else:   #更新信息
                     self.myClient = MyClient(setupTab,"update")
                     self.myClient.updateClientInfo()
+                    self.myCmd.do_saveSetupInServer()
 
             except Fault as f:
                 if f.faultCode == 2:
@@ -145,7 +146,7 @@ class Root():
                     raise f
             except Exception as e:
                 self.PTab.info("连接远程设备出错，请检查配置信息 出错信息:" + str(e))
-                messagebox.showerror('连接错误', '无法连接服务器，请检查网络、代理服务器')
+               # messagebox.showerror('连接错误', '无法连接服务器，请检查网络、代理服务器')
                 traceback.print_exc()
                 return 0
             self.PTab.info("连接成功，可以传输或同步文件")
@@ -975,11 +976,11 @@ class SyncTab(PTab):
         self.root.syncAllProgressInfo_l = self.syncAllProgressInfo_l
 
     def show(self):
-        self.root.notebook.select(self.root.tabIndexes["同步"])
+        #self.root.notebook.select(self.root.tabIndexes["同步"])
         self.fill()
-        self.root.myCmd.do_versionCheck()
-        self.viewSyncFiles("upload")
-        self.root.notebook.select(0)
+        # self.root.myCmd.do_versionCheck()
+        # self.viewSyncFiles("upload")
+        #self.root.notebook.select(0)
 
 
     def viewSyncFiles(self, typeStr):

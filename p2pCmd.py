@@ -18,6 +18,7 @@ class MyCmd(Cmd):
 
     def __init__(self, clientInfo):
         Cmd.__init__(self)
+        self.root = None
         self.clientName = clientInfo["clientNameVal"]
         if clientInfo["proxy_cbVal"] == 0:
             self.proxy = ServerProxy(URL)  # 连接自己启动的服务器
@@ -27,7 +28,7 @@ class MyCmd(Cmd):
 
         self.host = self.clientName   # 已连接的对象默认为自己
         MyCmd.prompt = 'Alex_p2p@' + self.host + '>'
-        self.root = None
+
 
     def do_fetch(self, client, fromW, pathStr, filename):
         downloadDir = client.clientInfo["downloadFolderVal"]
@@ -209,13 +210,16 @@ class MyCmd(Cmd):
         fileCount = len(self.root.upload_files)
         if self.root.syncListSelected == "syncAll":  # 处理一键上传的进度条
             fileCount += len(self.root.download_files)
+
+            if fileCount==0:
+                fileCount=1
+                step = 100
+            else:
+                step = 100 / fileCount
+
             progress += 100 * len(self.root.download_files) / fileCount
             i += len(self.root.download_files)
 
-        if fileCount == 0:
-            step = 100
-        else:
-            step = 100 / fileCount
 
         for info in self.root.upload_files:
             self.do_syncUpload(info)
@@ -247,20 +251,21 @@ class MyCmd(Cmd):
 
     def do_saveSetupInServer(self): # 在服务器上保存配置信息
         # 保存配置文件
-        infoFileName = getMacAdr() + ".info"
+        infoFileName = getMacAdr() + ".info" #以MAC地址保存每个终端上的配置信息
         data = self.root.myClient.getFileData(infoFileName, ".")
         rs = self.proxy.sendFileToServer(data, infoFileName, self.clientName, ".")
+        if rs==1:
+            infoFileName = self.clientName + ".info" #以用户名保存配置信息，用户验证密码
+            rs = self.proxy.sendFileToServer(data, infoFileName, self.clientName, ".")
 
-        infoFileName = self.clientName + ".info"
-        rs = self.proxy.sendFileToServer(data, infoFileName, self.clientName, ".")
-
+        self.mPrint("已完成配置：{}".format(infoFileName))
 
         return rs
 
 
     def do_checkLogin(self,clientPW):
-        return self.proxy.checkLogin(self.clientName, getMacAdr() , clientPW)
-
+        r= self.proxy.checkLogin(self.clientName, getMacAdr() , clientPW)
+        return r
 
     def do_checkVer(self):
         return self.proxy.checkVer(VERSION)
@@ -339,7 +344,9 @@ class MyCmd(Cmd):
         msg = re.sub(r"\(|\)|,|'", '', str(args))
         if self.root:
             self.root.infoList.insert(1.0, nowStr() + " " + msg + "...\n")
-        self.root.logger.info(msg)
+            self.root.logger.info(msg)
+        else:
+            print(msg)
 
 
 def main():

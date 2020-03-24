@@ -7,7 +7,7 @@ import traceback
 import os
 import urllib
 import urllib.request
-
+import sys
 
 import logging
 
@@ -44,7 +44,7 @@ class ProxiedTransport(Transport):  # 用于处理代理服务器
                 return self.parse_response(resp)
         except Fault as f:
             print(f)
-            #raise
+            raise
         except Exception:
             self.close()
             raise
@@ -62,6 +62,18 @@ def connServerProxy(url,ProxyServer):
     transport.set_proxy(url)
     print("走代理")
     return ServerProxy(url, transport=transport)
+
+
+
+def get_invoke_info(): #查看调用信息
+    print("当前文件名:",sys._getframe(1).f_code.co_filename)  # 当前文件名
+    print("当前函数名:",sys._getframe(1).f_code.co_name) # 当前函数名
+    print("当前函数的行号:",sys._getframe(1).f_lineno) #当前函数的行号
+
+    print("调用该函数的函数文件名:",sys._getframe(2).f_code.co_filename)  # 调用该函数的函数文件名
+    print("调用该函数的函数名:",sys._getframe(2).f_code.co_name)  # 调用该函数的函数名字，如果没有被调用，则返回<module>
+    print("调用该函数的行号:",sys._getframe(2).f_lineno) # 调用该函数的行号
+
 
 
 def logInit(logPath):

@@ -248,9 +248,17 @@ l = logInit("D:\\AlexP2P\\test.log")
 l.info("日志")
 
 def aaa(*arg):
+    get_invoke_info()
+    # print(sys._getframe().f_code.co_filename)  # 当前文件名，可以通过__file__获得
+    # print(sys._getframe(0).f_code.co_name) # 当前函数名
+    # print(sys._getframe(1).f_code.co_name)  # 调用该函数的函数名字，如果没有被调用，则返回<module>
+    # print(sys._getframe(0).f_lineno) #当前函数的行号
+    # print(sys._getframe(1).f_lineno) # 调用该函数的行号
     print(arg)
 
-aaa(4,"d","ddd")
-a="c:\\fdafda/fdsaf/fdafd"
-a=a.replace("/","\\")
-print(a)
+def bbb(*arg):
+    aaa(*arg)
+bbb(4,"d","ddd")
+# a="c:\\fdafda/fdsaf/fdafd"
+# a=a.replace("/","\\")
+# print(a)
