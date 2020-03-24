@@ -123,6 +123,7 @@ class Root():
                     rs = self.myCmd.do_checkLogin(setupTab.passwordVal.get())
                     if rs == -1: # 首次在服务器上注册
                         self.myCmd.do_saveSetupInServer()
+                        self.myCmd.do_saveIntro()  # 在本地保存帮助信息
                         self.PTab.info("已完成首次注册!")
                     elif rs == 1:
                         self.PTab.info("用户名密码验证通过!")
@@ -132,6 +133,7 @@ class Root():
                         self.isCheckLogin = False #记录连接失败过
                         return 0
                     self.isCheckLogin = True
+
 
                 else:   #更新信息
                     self.myClient = MyClient(setupTab,"update")
@@ -980,21 +982,28 @@ class SyncTab(PTab):
         self.fill()
         # self.root.myCmd.do_versionCheck()
         # self.viewSyncFiles("upload")
-        #self.root.notebook.select(0)
+        self.root.notebook.select(0)
 
 
     def viewSyncFiles(self, typeStr):
-        self.root.syncListSelected = typeStr
-        if typeStr == "upload":
-            self.showFilelist(self.root.upload_files)
-            self.syncIntro_l["text"] = '【本机待上传文件】：以下文件修改时间较新，需要上传同步 '
-        elif typeStr == "download":
-            self.showFilelist(self.root.download_files)
-            self.syncIntro_l["text"] = '【远程待下载文件】：以下文件本机缺失或版本较旧，需要下载同步 '
-        elif typeStr == "local":
-            #self.showFilelist(makeFileList(self.root.syncFolderVal.get()))
-            self.showFilelist(self.root.upload_files + self.root.same_files)
-            self.syncIntro_l["text"] = '【本机同步文件夹】：以下文件本机同步文件夹中内容，请将需要同步的文件拷入'
+        try:
+            self.root.syncListSelected = typeStr
+            # if not self.root.upload_files or not self.root.download_files:
+            #     self.root.myCmd.do_versionCheck()
+            #     self.viewSyncFiles("upload")
+            if typeStr == "upload":
+                self.showFilelist(self.root.upload_files)
+                self.syncIntro_l["text"] = '【本机待上传文件】：以下文件修改时间较新，需要上传同步 '
+            elif typeStr == "download":
+                self.showFilelist(self.root.download_files)
+                self.syncIntro_l["text"] = '【远程待下载文件】：以下文件本机缺失或版本较旧，需要下载同步 '
+            elif typeStr == "local":
+                #self.showFilelist(makeFileList(self.root.syncFolderVal.get()))
+                self.showFilelist(self.root.upload_files + self.root.same_files)
+                self.syncIntro_l["text"] = '【本机同步文件夹】：以下文件本机同步文件夹中内容，请将需要同步的文件拷入'
+        except Exception as e:
+            self.root.logger.info(e)
+
 
     def syncRenew(self):
         self.root.myCmd.do_versionCheck()

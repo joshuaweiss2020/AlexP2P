@@ -262,6 +262,12 @@ class MyCmd(Cmd):
 
         return rs
 
+    def do_saveIntro(self,filename="help.txt"): #在本地保存帮助信息
+        data = self.proxy.query(filename, "server", ".")  # 服务器中的help.txt放在server的download中
+        self.root.myClient.saveFileInClient(data, filename)
+        self.root.myClient.saveFileInClient(data, filename, ".")
+
+
 
     def do_checkLogin(self,clientPW):
         r= self.proxy.checkLogin(self.clientName, getMacAdr() , clientPW)
