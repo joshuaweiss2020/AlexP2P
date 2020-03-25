@@ -1,5 +1,3 @@
-
-
 from os.path import isfile
 
 from tkinter import *
@@ -17,8 +15,7 @@ from myUtils import *
 from p2pClient import MyClient
 
 
-
-class Root():
+class Root:
     def __init__(self, shape):  # shape为长*宽元组
         self.logger = logInit("alexP2PClient.log")
         self.wnd = Tk()
@@ -42,7 +39,7 @@ class Root():
         # self.buttonPad = ()
         self.tabShape = (self.shape[0], self.shape[1])  # - self.buttonShape[1])
         self.myClient, self.myCmd, self.PTab, self.clientName = None, None, None, None
-        self.progressBar,self.syncProgressBar = None, None
+        self.progressBar, self.syncProgressBar = None, None
         self.syncFolderVal, self.progressBarVal, self.syncProgressBarVal = None, None, None
         self.syncProgressInfo_l, self.progressInfo_l = None, None
         self.upload_files, self.download_files, self.same_files = None, None, None
@@ -56,7 +53,7 @@ class Root():
     def tabChoosed(self, *args):
         tabId = self.notebook.select()
         index = self.notebook.index(tabId)
-        if not self.connected and index!= self.tabIndexes["设置"]:
+        if not self.connected and index != self.tabIndexes["设置"]:
             messagebox.showerror('连接错误', '未连接服务器，请检查网络、代理服务器，修改后连接')
             self.notebook.select(self.tabIndexes["设置"])
             self.widgets.tabs[self.tabIndexes["设置"]].show()
@@ -81,19 +78,19 @@ class Root():
         self.style.configure("basic.TCombobox", foreground="black", background="lightgray", relief=GROOVE,
                              font=font_text)
 
-    def login(self): #登录处理
+    def login(self):  # 登录处理
         infoTab = InfoTab(self)
         syncTab = SyncTab(self)
         downloadTab = DownloadTab(self)
         setupTab = SetupTab(self)
         helpTab = HelpTab(self)
-        infoPath = path.join(os.getcwd(),getMacAdr() + ".info")
-        if not path.exists(infoPath): #初次使用
+        infoPath = path.join(os.getcwd(), getMacAdr() + ".info")
+        if not path.exists(infoPath):  # 初次使用
             self.notebook.select(self.tabIndexes["设置"])
             setupTab.fill()
         else:
             self.notebook.select(self.tabIndexes["设置"])
-            setupTab.show()  #fill & readfile
+            setupTab.show()  # fill & readfile
             if self.connectServer() == 1:
                 self.connected = True
                 self.notebook.select(self.tabIndexes["同步"])
@@ -115,13 +112,13 @@ class Root():
             return 0
         else:
             try:
-                if not self.myClient or not self.myCmd or clientName != setupTab.clientNameInit or not self.isCheckLogin: #首次登录或更换用户或前次登录失败
-                    self.myClient, self.myCmd = p2pCmd.gui_main(setupTab,self)
+                if not self.myClient or not self.myCmd or clientName != setupTab.clientNameInit or not self.isCheckLogin:  # 首次登录或更换用户或前次登录失败
+                    self.myClient, self.myCmd = p2pCmd.gui_main(setupTab, self)
                     self.myClient.root = self
                     self.myCmd.root = self
-                    #保存配置文件
+                    # 保存配置文件
                     rs = self.myCmd.do_checkLogin(setupTab.passwordVal.get())
-                    if rs == -1: # 首次在服务器上注册
+                    if rs == -1:  # 首次在服务器上注册
                         self.myCmd.do_saveSetupInServer()
                         self.myCmd.do_saveIntro()  # 在本地保存帮助信息
                         self.PTab.info("已完成首次注册!")
@@ -130,13 +127,13 @@ class Root():
                     elif rs == 0:
                         # messagebox.showerror('连接错误', '无法连接服务器，请检查用户名：{} 及密码'.format(self.clientName))
                         self.PTab.info("连接失败，用户名密码错误!")
-                        self.isCheckLogin = False #记录连接失败过
+                        self.isCheckLogin = False  # 记录连接失败过
                         return 0
                     self.isCheckLogin = True
 
 
-                else:   #更新信息
-                    self.myClient = MyClient(setupTab,"update")
+                else:  # 更新信息
+                    self.myClient = MyClient(setupTab, "update")
                     self.myClient.updateClientInfo()
                     self.myCmd.do_saveSetupInServer()
 
@@ -148,7 +145,7 @@ class Root():
                     raise f
             except Exception as e:
                 self.PTab.info("连接远程设备出错，请检查配置信息 出错信息:" + str(e))
-               # messagebox.showerror('连接错误', '无法连接服务器，请检查网络、代理服务器')
+                # messagebox.showerror('连接错误', '无法连接服务器，请检查网络、代理服务器')
                 traceback.print_exc()
                 return 0
             self.PTab.info("连接成功，可以传输或同步文件")
@@ -165,12 +162,6 @@ class Root():
                 webbrowser.open("http://106.13.113.252//p2p.htm")
                 return
         return rs
-
-
-
-
-
-
 
 
 class Widgets():  # Widgets= PButton+PTab
@@ -270,8 +261,7 @@ class PTab():
     def connClient(self, clientName):
         pass
 
-
-    def showFilelist(self, fileList,localDir=None): #localDir用于远程文件与本地目录中的文件做状态比较
+    def showFilelist(self, fileList, localDir=None):  # localDir用于远程文件与本地目录中的文件做状态比较
         col_num = 1
         nowPath = ".."
         self.fileList = []
@@ -308,6 +298,7 @@ class InfoTab():
         self.infoFrame.place(x=0, y=rowY)
         self.infoList.pack()
 
+
 class HelpTab(PTab):
     def __init__(self, root):
         self.name = "帮助"
@@ -315,24 +306,22 @@ class HelpTab(PTab):
 
     def fill(self):
         self.textVal = StringVar()
-        self.text = Text(self.tab, width=100, height=30, bg='lightgray' ,fg="black", font=("黑体", -12))
+        self.text = Text(self.tab, width=100, height=30, bg='lightgray', fg="black", font=("黑体", -12))
 
-        self.text.place(x=5,y=5)
+        self.text.place(x=5, y=5)
         # self.text.insert(INSERT, "AlexP2P 文件同步传输\n For Alex & Queena \n\n")
 
         intros = self.root.myCmd.do_getIntro()
         for i in intros:
             self.text.insert(INSERT, i)
 
-        self.text.insert(INSERT, "\n"*2)
+        self.text.insert(INSERT, "\n" * 2)
         self.text.insert(INSERT, "【当前用户】 {} \n".format(self.root.clientName))
         self.text.insert(INSERT, "【当前版本】 {} \n".format(VERSION))
         self.text.insert(INSERT, "【更新时间】 {} \n".format("2020-03-23"))
         self.text.insert(INSERT, "【设计开发】 {} \n".format("骄华"))
 
-
         self.text["state"] = DISABLED
-
 
 
 class SetupTab(PTab):
@@ -363,11 +352,9 @@ class SetupTab(PTab):
         self.clientName.place(x=rowX, y=rowY)
         self.clientName.bind("<Any-KeyRelease>", self.changeDirName)
 
-
         rowX += self.clientName.winfo_reqwidth() + 5
         self.clientName_help = ttk.Label(self.tab, text='【作为远程访问和同步标识】', style="basic.TLabel")
         self.clientName_help.place(x=rowX, y=rowY)
-
 
         # 设定访问密码
         rowY += self.clientName_help.winfo_reqheight() + 10
@@ -393,8 +380,8 @@ class SetupTab(PTab):
         rowX = self.lSpace
         self.downloadFolderVal = StringVar()
         if not self.downloadFolderVal.get():
-            pathStr = path.join(os.getcwd(),self.clientNameVal.get(),"download")
-            pathStr = re.sub(r"P2P_gui.app/Contents/Resources/","",pathStr) #处理苹果APP目录
+            pathStr = path.join(os.getcwd(), self.clientNameVal.get(), "download")
+            pathStr = re.sub(r"P2P_gui.app/Contents/Resources/", "", pathStr)  # 处理苹果APP目录
             self.downloadFolderVal.set(pathStr)
 
         self.downloadFolder_l = ttk.Label(self.tab, text='下载文件夹:', style="basic.TLabel")
@@ -419,8 +406,8 @@ class SetupTab(PTab):
         self.syncFolderVal = StringVar()
         self.root.syncFolderVal = self.syncFolderVal
         if not self.syncFolderVal.get():
-            pathStr = path.join(os.getcwd(),self.clientNameVal.get(),"sync")
-            pathStr = re.sub(r"P2P_gui.app/Contents/Resources/","",pathStr) #处理苹果APP目录
+            pathStr = path.join(os.getcwd(), self.clientNameVal.get(), "sync")
+            pathStr = re.sub(r"P2P_gui.app/Contents/Resources/", "", pathStr)  # 处理苹果APP目录
             self.syncFolderVal.set(pathStr)
 
         rowY += self.downloadFolder_help.winfo_reqheight() + 10
@@ -443,7 +430,6 @@ class SetupTab(PTab):
         rowX += self.syncFolder_btn.winfo_reqwidth() + 5
         self.syncFolder_help = ttk.Label(self.tab, text='【设定用于同步的文件夹】', style="basic.TLabel")
         self.syncFolder_help.place(x=rowX, y=rowY)
-
 
         # 设定代理服务器
         rowY += self.syncFolder_help.winfo_reqheight() + 15
@@ -470,7 +456,6 @@ class SetupTab(PTab):
         self.proxyIP = ttk.Entry(self.tab, style='basic.TEntry',
                                  textvariable=self.proxyIPVal, width=16)
         self.proxyIP.place(x=rowX, y=rowY)
-
 
         rowX += self.proxyIP.winfo_reqwidth() + 5
         self.proxyIP_help = ttk.Label(self.tab, text='代理服务器IP地址【格式：XX.XX.XX.XX】', style="basic.TLabel")
@@ -546,8 +531,8 @@ class SetupTab(PTab):
 
     def chooseFolder(self, val):
         dirStr = tkinter.filedialog.askdirectory()
-        if os.sep == "\\" and dirStr.find("/")>-1:
-            dirStr = dirStr.replace("/","\\")
+        if os.sep == "\\" and dirStr.find("/") > -1:
+            dirStr = dirStr.replace("/", "\\")
         val.set(dirStr)
 
     def proxyCheck(self):
@@ -576,11 +561,10 @@ class SetupTab(PTab):
             self.info("设置信息更新成功")
             self.readInfo()
             rs = self.root.connectServer()
-            if rs != 0: # 0 为连接失败
+            if rs != 0:  # 0 为连接失败
                 self.root.widgets.tabs[0].show()
             else:
                 messagebox.showerror('连接错误', '无法连接服务器，请检查用户名：{} 及密码'.format(self.root.clientName))
-
 
     def readInfo(self):  # 读入设置信息
         if isfile(getMacAdr() + ".info"):
@@ -601,11 +585,11 @@ class SetupTab(PTab):
 
         pathStr = path.join(os.getcwd(), self.clientNameVal.get())
         pathStr = re.sub(r"P2P_gui.app/Contents/Resources/", "", pathStr)  # 处理苹果APP目录
-        if os.sep == "\\" and pathStr.find("/")>-1:
-            pathStr = pathStr.replace("/","\\")
+        if os.sep == "\\" and pathStr.find("/") > -1:
+            pathStr = pathStr.replace("/", "\\")
 
-        self.downloadFolderVal.set(path.join(pathStr,"download"))
-        self.syncFolderVal.set(path.join(pathStr,"sync"))
+        self.downloadFolderVal.set(path.join(pathStr, "download"))
+        self.syncFolderVal.set(path.join(pathStr, "sync"))
 
 
 class DownloadTab(PTab):
@@ -615,6 +599,7 @@ class DownloadTab(PTab):
 
     def fill(self):
         helpX = self.lSpace + 60 * self.lSpace
+
 
         # 设置连接对象
         self.connClientVal = StringVar()
@@ -638,7 +623,7 @@ class DownloadTab(PTab):
         rowX += self.connClientPWD_l.winfo_reqwidth() + 5
         self.connClientPWDVal = StringVar()
         self.connClientPWD = ttk.Entry(self.tab, style='basic.TEntry',
-                                       textvariable=self.connClientPWDVal, width=10,show="*")
+                                       textvariable=self.connClientPWDVal, width=10, show="*")
         self.connClientPWD.place(x=rowX, y=rowY)
 
         rowX += self.connClientPWD.winfo_reqwidth() + 5
@@ -687,21 +672,20 @@ class DownloadTab(PTab):
         self.localDirVal = StringVar()
         self.localDirVal.set(self.root.myClient.clientInfo["downloadFolderVal"])
         self.localDir = ttk.Entry(self.tab, style='basic.TEntry',
-                                   textvariable=self.localDirVal, width=50)
+                                  textvariable=self.localDirVal, width=50)
         self.localDir.place(x=rowX, y=rowY)
 
         rowX += self.localDir.winfo_reqwidth() + 5
         self.localDirEnterBtn = ttk.Button(self.tab, style="basic.TButton",
-                                            text="查看本地目录",
-                                            command=lambda: self.enterLocalFolder(self.localDirVal.get()))
+                                           text="查看本地目录",
+                                           command=lambda: self.enterLocalFolder(self.localDirVal.get()))
         self.localDirEnterBtn.place(x=rowX, y=rowY)
 
         rowX += self.localDirEnterBtn.winfo_reqwidth() + 5
         self.localDirReturnBtn = ttk.Button(self.tab, style="basic.TButton",
-                                             text="返回远程目录",
-                                             command=lambda: self.enterRemoteFolder(self.remoteDirVal.get()))
+                                            text="返回远程目录",
+                                            command=lambda: self.enterRemoteFolder(self.remoteDirVal.get()))
         self.localDirReturnBtn.place(x=rowX, y=rowY)
-
         # 显示文件列表###########
 
         rowX = self.lSpace
@@ -715,10 +699,10 @@ class DownloadTab(PTab):
 
         # self.titleList.place(x=rowX, y=rowY)
         self.titleList.grid(row=0, column=0)
-        #滚动条
-        rowX += self.titleList.winfo_reqwidth() +5
+        # 滚动条
+        rowX += self.titleList.winfo_reqwidth() + 5
         yscrollbar = Scrollbar(listFrame, command=self.titleList.yview)
-        yscrollbar.grid(row=0, column = 1)
+        yscrollbar.grid(row=0, column=1)
 
         # yscrollbar.place(x=rowX , y=rowY)
 
@@ -757,11 +741,10 @@ class DownloadTab(PTab):
 
         rowX = self.lSpace
         rowY += self.progressBar.winfo_reqheight() + 10
-        self.progressInfo_l = ttk.Label(self.tab, text=' ' * 15, style='basic.TLabel', foreground='gray', font=("黑体", -10))
+        self.progressInfo_l = ttk.Label(self.tab, text=' ' * 15, style='basic.TLabel', foreground='gray',
+                                        font=("黑体", -10))
         self.progressInfo_l.place(x=rowX, y=rowY)
         self.root.progressInfo_l = self.progressInfo_l
-
-
 
     def show(self):
         self.fill()
@@ -770,7 +753,6 @@ class DownloadTab(PTab):
         if clientList:
             self.connClient["values"] = tuple(clientList.keys())
             self.connClient.current(1)
-
 
     def fileChoosed(self, event):
         w = event.widget
@@ -789,23 +771,21 @@ class DownloadTab(PTab):
             if yesno:
                 self.root.myCmd.do_fetch(self.root.myClient, self.connClientVal.get(), info["dirName"], info["name"])
 
-
     # @self.showEx()
     def connectClient(self):
         try:
             clientName = self.connClientVal.get()
             client = self.root.myCmd.do_getClient(clientName, self.connClientPWDVal.get())
             if client:
-                self.showFilelist(client["fileList"],self.root.myClient.clientInfo["downloadFolderVal"])
+                self.showFilelist(client["fileList"], self.root.myClient.clientInfo["downloadFolderVal"])
                 self.remoteDirVal.set(client["downloadFolderVal"])
             else:
                 messagebox.showerror('连接错误', '无法连接远程终端，密码错误')
         except Exception as e:
             self.info("连接远程设备出错，出错信息:" + str(e))
 
-
     def enterRemoteFolder(self, dirName):
-        if not dirName or dirName=='':
+        if not dirName or dirName == '':
             self.info("请先连接远程终端")
             messagebox.showerror('返回错误', '未连接远程终端，请先选择并连接')
             return
@@ -834,7 +814,7 @@ class DownloadTab(PTab):
             self.root.progressInfo_l["text"] = "目录切换失败".format(dirName)
             self.root.progressBarVal.set(0)
 
-    def enterLocalFolder(self,dirName):
+    def enterLocalFolder(self, dirName):
         fileList = makeFileList(dirName)
         self.showFilelist(fileList)
 
@@ -847,8 +827,8 @@ class SyncTab(PTab):
     def fill(self):
 
         rowY = self.top + self.hSpace
-        rowX =self.lSpace
-        self.syncFolder_l = ttk.Label(self.tab, text='本机同步文件夹：' + 2*" ", style="basic.TLabel")
+        rowX = self.lSpace
+        self.syncFolder_l = ttk.Label(self.tab, text='本机同步文件夹：' + 2 * " ", style="basic.TLabel")
         self.syncFolder_l.place(x=rowX, y=rowY)
 
         rowX += self.syncFolder_l.winfo_reqwidth() + 10
@@ -873,33 +853,34 @@ class SyncTab(PTab):
         # 查看待下载文件按钮
         rowX += self.viewUploadBtn.winfo_reqwidth() + 10
         self.viewDownloadBtn = ttk.Button(self.tab, style="basic.TButton",
-                                        text="查看远程待下载文件",
-                                        command=lambda: self.viewSyncFiles('download'))
+                                          text="查看远程待下载文件",
+                                          command=lambda: self.viewSyncFiles('download'))
         self.viewDownloadBtn.place(x=rowX, y=rowY)
 
         # 查看待本机同步文件按钮
         rowX += self.viewDownloadBtn.winfo_reqwidth() + 10
         self.viewLocalBtn = ttk.Button(self.tab, style="basic.TButton",
-                                        text="查看本机同步文件夹",
-                                        command=lambda: self.viewSyncFiles('local'))
+                                       text="查看本机同步文件夹",
+                                       command=lambda: self.viewSyncFiles('local'))
         self.viewLocalBtn.place(x=rowX, y=rowY)
 
         # 查看待本机同步文件按钮
         rowX += self.viewLocalBtn.winfo_reqwidth() + 10
         self.syncRenewBtn = ttk.Button(self.tab, style="basic.TButton",
-                                        text="刷新同步信息",
-                                        command=lambda: self.syncRenew())
+                                       text="刷新同步信息",
+                                       command=lambda: self.syncRenew())
         self.syncRenewBtn.place(x=rowX, y=rowY)
 
-        #说明
+        # 说明
         rowY += self.syncRenewBtn.winfo_reqheight() + 10
-        rowX =self.lSpace
-        self.syncIntro_l = ttk.Label(self.tab, foreground='blue', text="【本机待上传文件】：以下文件修改时间较新，需要上传同步 ", style="basic.TLabel")
+        rowX = self.lSpace
+        self.syncIntro_l = ttk.Label(self.tab, foreground='blue', text="【本机待上传文件】：以下文件修改时间较新，需要上传同步 ",
+                                     style="basic.TLabel")
         self.syncIntro_l.place(x=rowX, y=rowY)
 
-        #文件列表
+        # 文件列表
         rowY += self.syncIntro_l.winfo_reqheight() + 10
-        rowX =self.lSpace
+        rowX = self.lSpace
 
         listFrame = Frame(self.tab, width=700, height=300)
         listFrame.place(x=rowX, y=rowY)
@@ -907,12 +888,12 @@ class SyncTab(PTab):
         self.titleList = Listbox(listFrame, fg='black', bg='lightgray', font=("黑体", -10), relief=GROOVE,
                                  width=140, height=20, activestyle='dotbox')
 
-        #self.titleList.place(x=rowX, y=rowY)
+        # self.titleList.place(x=rowX, y=rowY)
         self.titleList.grid(row=0, column=0)
 
         yscrollbar = Scrollbar(listFrame, command=self.titleList.yview)
         # yscrollbar.place(x=rowX + self.titleList.winfo_reqwidth() , y=rowY)
-        yscrollbar.grid(row=0,column=1)
+        yscrollbar.grid(row=0, column=1)
         self.titleList.config(yscrollcommand=yscrollbar.set)
 
         self.titleList.bind("<Double-Button-1>", self.fileChoosed)
@@ -920,7 +901,8 @@ class SyncTab(PTab):
         # 显示标题###########
         col_num = 1
 
-        self.titleDef = [("名称", 12, "name"), ("所在目录", 6, "folderName"), ("类型", 5, "ext"), ("大小", 5, "size"), ("修改时间", 8, "mtime"),
+        self.titleDef = [("名称", 12, "name"), ("所在目录", 6, "folderName"), ("类型", 5, "ext"), ("大小", 5, "size"),
+                         ("修改时间", 8, "mtime"),
                          ("创建时间", 8, "ctime"), ("本地状态", 5, "state")]
 
         self.title, self.col_len_l = rowTitle(self.titleDef)
@@ -934,20 +916,20 @@ class SyncTab(PTab):
         rowX = self.lSpace
         rowY += self.titleList.winfo_reqheight() + 20
         self.uploadBtn = ttk.Button(self.tab, style="basic.TButton",
-                                        text="全部上传同步",
-                                        command=lambda: self.syncFiles('upload'))
+                                    text="全部上传同步",
+                                    command=lambda: self.syncFiles('upload'))
         self.uploadBtn.place(x=rowX, y=rowY)
 
         rowX += self.uploadBtn.winfo_reqwidth() + 20
         self.downloadBtn = ttk.Button(self.tab, style="basic.TButton",
-                                        text="全部下载同步",
-                                        command=lambda: self.syncFiles('download'))
+                                      text="全部下载同步",
+                                      command=lambda: self.syncFiles('download'))
         self.downloadBtn.place(x=rowX, y=rowY)
 
         rowX += self.downloadBtn.winfo_reqwidth() + 20
         self.syncAllBtn = ttk.Button(self.tab, style="basic.TButton",
-                                        text="一键同步【上传+下载】",
-                                        command=lambda: self.syncFiles('syncAll'))
+                                     text="一键同步【上传+下载】",
+                                     command=lambda: self.syncFiles('syncAll'))
         self.syncAllBtn.place(x=rowX, y=rowY)
 
         # 显示进度条
@@ -960,18 +942,20 @@ class SyncTab(PTab):
         self.syncProgressBar_l.place(x=rowX, y=rowY)
 
         rowX += self.syncProgressBar_l.winfo_reqwidth() + 5
-        self.syncProgressBar = ttk.Progressbar(self.tab, variable=self.syncProgressBarVal, length='400', mode='determinate')
+        self.syncProgressBar = ttk.Progressbar(self.tab, variable=self.syncProgressBarVal, length='400',
+                                               mode='determinate')
         self.syncProgressBar.place(x=rowX, y=rowY)
         self.root.syncProgressBar = self.syncProgressBar
         self.root.syncProgressBarVal = self.syncProgressBarVal
         self.syncProgressBarVal.set(0)
 
         rowY += self.syncProgressBar.winfo_reqheight() + 5
-        self.syncProgressInfo_l = ttk.Label(self.tab, text=' ' * 15, style='basic.TLabel', foreground='gray', font=("黑体", -10))
+        self.syncProgressInfo_l = ttk.Label(self.tab, text=' ' * 15, style='basic.TLabel', foreground='gray',
+                                            font=("黑体", -10))
         self.syncProgressInfo_l.place(x=rowX, y=rowY)
         self.root.syncProgressInfo_l = self.syncProgressInfo_l
 
-       # 显示批量传送进度条
+        # 显示批量传送进度条
         rowX = self.lSpace
         rowY += self.syncProgressInfo_l.winfo_reqheight() + 5
 
@@ -981,24 +965,25 @@ class SyncTab(PTab):
         self.syncAllProgressBar_l.place(x=rowX, y=rowY)
 
         rowX += self.syncAllProgressBar_l.winfo_reqwidth() + 5
-        self.syncAllProgressBar = ttk.Progressbar(self.tab, variable=self.syncAllProgressBarVal, length='400', mode='determinate')
+        self.syncAllProgressBar = ttk.Progressbar(self.tab, variable=self.syncAllProgressBarVal, length='400',
+                                                  mode='determinate')
         self.syncAllProgressBar.place(x=rowX, y=rowY)
         self.root.syncAllProgressBar = self.syncProgressBar
         self.root.syncAllProgressBarVal = self.syncAllProgressBarVal
         self.syncAllProgressBarVal.set(0)
 
         rowY += self.syncAllProgressBar.winfo_reqheight() + 5
-        self.syncAllProgressInfo_l = ttk.Label(self.tab, text=' ' * 15, style='basic.TLabel', foreground='gray', font=("黑体", -10))
+        self.syncAllProgressInfo_l = ttk.Label(self.tab, text=' ' * 15, style='basic.TLabel', foreground='gray',
+                                               font=("黑体", -10))
         self.syncAllProgressInfo_l.place(x=rowX, y=rowY)
         self.root.syncAllProgressInfo_l = self.syncAllProgressInfo_l
 
     def show(self):
-        #self.root.notebook.select(self.root.tabIndexes["同步"])
+        # self.root.notebook.select(self.root.tabIndexes["同步"])
         self.fill()
         # self.root.myCmd.do_versionCheck()
         # self.viewSyncFiles("upload")
         self.root.notebook.select(0)
-
 
     def viewSyncFiles(self, typeStr):
         try:
@@ -1013,18 +998,17 @@ class SyncTab(PTab):
                 self.showFilelist(self.root.download_files)
                 self.syncIntro_l["text"] = '【远程待下载文件】：以下文件本机缺失或版本较旧，需要下载同步 '
             elif typeStr == "local":
-                #self.showFilelist(makeFileList(self.root.syncFolderVal.get()))
+                # self.showFilelist(makeFileList(self.root.syncFolderVal.get()))
                 self.showFilelist(self.root.upload_files + self.root.same_files)
                 self.syncIntro_l["text"] = '【本机同步文件夹】：以下文件本机同步文件夹中内容，请将需要同步的文件拷入'
         except Exception as e:
             self.root.logger.info(e)
 
-
     def syncRenew(self):
         self.root.myCmd.do_versionCheck()
         self.viewSyncFiles("upload")
 
-    def syncFiles(self,typeStr):
+    def syncFiles(self, typeStr):
         self.root.syncListSelected = "local"
         if typeStr == "download":
             self.root.myCmd.do_syncDownloadAll()
@@ -1046,11 +1030,11 @@ class SyncTab(PTab):
         info = self.fileList[line[0] - 2]
 
         # 处理文件上传、下载
-        if info["state"] == "远程较新" or info["state"] == "本地尚无": #download
+        if info["state"] == "远程较新" or info["state"] == "本地尚无":  # download
             yesno = messagebox.askyesno('提示', '要下载文件{}吗'.format(info["name"]))
             if yesno:
                 self.root.myCmd.do_syncDownload(info)
-        elif info["state"] == "本地新建" or info["state"] == "本地较新":   #upload
+        elif info["state"] == "本地新建" or info["state"] == "本地较新":  # upload
             yesno = messagebox.askyesno('提示', '要上传文件{}至服务器同步文件夹吗'.format(info["name"]))
             if yesno:
                 self.root.myCmd.do_syncUpload(info)
@@ -1061,13 +1045,13 @@ class SyncTab(PTab):
         self.viewSyncFiles(self.root.syncListSelected)
 
 
-
 def main():
     r = Root((800, 600))
     r.login()
     print("loop")
 
     r.wnd.mainloop()
+
 
 if __name__ == '__main__':
     main()
